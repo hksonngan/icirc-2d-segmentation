@@ -17,6 +17,43 @@ namespace iCiRC
             FilterSize = null;
         }
 
+        public void GenerateCentralDifferenceGradientFilter2D(int Dimension)
+        {
+            const int Size = 3;
+            Filter = new double[Size * Size];
+            Filter.Initialize();
+            FilterSize = new Point3D(Size, Size, 1);
+
+            if (Dimension == 0)         // Gradient_X
+            {
+                Filter[3] = -0.5;
+                Filter[5] = 0.5;
+            }
+            else if (Dimension == 1)    // Gradient_Y
+            {
+                // TO DO...
+            }
+        }
+
+        // TO DO...
+        public void GenerateCentralDifferenceHessianFilter2D(int Dimension_1, int Dimension_2)
+        {
+            const int Size = 3;
+            Filter = new double[Size * Size];
+            Filter.Initialize();
+            FilterSize = new Point3D(Size, Size, 1);
+
+            if (Dimension_1 == 0 && Dimension_2 ==0)         // Hessian_XX
+            {
+            }
+            else if ((Dimension_1 == 0 && Dimension_2 == 1) || (Dimension_1 == 1 && Dimension_2 == 0))    // Hessian_XY or Hessian_YX
+            {
+            }
+            else if (Dimension_1 == 1 && Dimension_2 == 1)    // Hessian_YY
+            {
+            }
+        }
+
         public void GenerateGaussianFilter2D(double Sigma, int Size)
         {
             Filter = new double[Size * Size];
