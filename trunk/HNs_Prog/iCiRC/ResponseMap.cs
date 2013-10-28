@@ -176,8 +176,8 @@ namespace iCiRC
             return Response;
         }
 
-        // Krissian et al.'s tubular structure detection
-        // Implemented by HNLee
+        // Krissian et al.'s flux-based anisotropic diffusion
+        // Implemented by SHJung 
         public double[] RunKrissianFluxMethod2D(int XNum, int YNum, byte[] ImageIntensity, int IterNum)
         {
             if (ImageIntensity == null || XNum <= 0 || YNum <= 0)
@@ -200,6 +200,9 @@ namespace iCiRC
                 {
                     for (int x = 1; x < XNum - 1; x++)
                     {
+                        //
+                        // TO DO...
+                        // Modify Perona and Malik's anisotropic diffusion -> Krissian's flux-based diffusion
                         int CurrentPixelIndex = y * XNum + x;
                         double NeighborsSum = EdgeStoppingFunction(Convert.ToDouble(SrcImage[CurrentPixelIndex - 1]) - SrcImage[CurrentPixelIndex]);
                         NeighborsSum += EdgeStoppingFunction(Convert.ToDouble(SrcImage[CurrentPixelIndex + 1]) - SrcImage[CurrentPixelIndex]);

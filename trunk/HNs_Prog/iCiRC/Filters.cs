@@ -31,11 +31,15 @@ namespace iCiRC
             }
             else if (Dimension == 1)    // Gradient_Y
             {
+                //
                 // TO DO...
+                //
             }
         }
 
+        //
         // TO DO...
+        //
         public void GenerateCentralDifferenceHessianFilter2D(int Dimension_1, int Dimension_2)
         {
             const int Size = 3;
