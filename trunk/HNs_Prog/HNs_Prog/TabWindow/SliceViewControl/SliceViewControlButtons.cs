@@ -29,24 +29,29 @@ namespace HNs_Prog
             if (VesselEnhancementDialog.MethodIndex == VEDialog.VEMethod.Frangi)
             {
                 const int ScaleNum = 4;
-                //double[] ScaleArray = { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0 };
                 double[] ScaleArray = {2.12, 2.72, 3.5 , 4.0};
-                //double[] ScaleArray = { 0.7, 1.4, 2.1, 2.8, 3.5, 4.2 };
 
                 ResultMap = map.RunFrangiMethod2D(VolumeData.XNum, VolumeData.YNum, CurrentXraySlice, ScaleNum, ScaleArray);
+                for (int i = 0; i < VolumeData.XNum * VolumeData.YNum; i++)
+                    CurrentXraySlice[i] = Convert.ToByte(ResultMap[i] * 255.0);
             }
             else if (VesselEnhancementDialog.MethodIndex == VEDialog.VEMethod.KrissianModel)
             {
                 const int ScaleNum = 5;
+                double[] ScaleArray = { 1.28, 1.65, 2.12, 2.72, 3.5 };
                 //double[] ScaleArray = { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0 };
-                double[] ScaleArray = {1.28, 1.65, 2.12, 2.72, 3.5 };
                 //double[] ScaleArray = { 0.7, 1.4, 2.1, 2.8, 3.5, 4.2 };
 
-                ResultMap = map.RunKrissianMethod2D(VolumeData.XNum, VolumeData.YNum, CurrentXraySlice, ScaleNum, ScaleArray);
+                ResultMap = map.RunKrissianModelMethod2D(VolumeData.XNum, VolumeData.YNum, CurrentXraySlice, ScaleNum, ScaleArray);
+                for (int i = 0; i < VolumeData.XNum * VolumeData.YNum; i++)
+                    CurrentXraySlice[i] = Convert.ToByte(ResultMap[i] * 255.0);
+            }
+            else if (VesselEnhancementDialog.MethodIndex == VEDialog.VEMethod.KrissianFlux)
+            {
+                const int IterNum = 5;
+                ResultMap = map.RunKrissianFluxMethod2D(VolumeData.XNum, VolumeData.YNum, CurrentXraySlice, IterNum);
             }
 
-            for (int i = 0; i < VolumeData.XNum * VolumeData.YNum; i++)
-                CurrentXraySlice[i] = Convert.ToByte(ResultMap[i] * 255.0);
             UpdateTextureOutput(CurrentXraySlice);
             this.PanelOutputImage.Invalidate();
         }

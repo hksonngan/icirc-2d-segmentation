@@ -23,10 +23,8 @@ namespace iCiRC
             int PixelNum = XNum * YNum;
             double[] Vesselness = new double[PixelNum];
             Vesselness.Initialize();
+            const double alpha = 0.5, beta = 1.0;
 
-            //
-            // TO DO...
-            //
             // Multi-scale
             for (int s = 0; s < SNum; s++)      // For each scale
             {
@@ -69,7 +67,6 @@ namespace iCiRC
                         }
                         double RatioA = Math.Abs(lambda1) / Math.Abs(lambda2);
                         double Structureness = Math.Sqrt(lambda1 * lambda1 + lambda2 * lambda2);
-                        const double alpha = 0.5, beta = 1.0;
 
                         if (lambda2 > 0.0)
                         {
@@ -81,11 +78,11 @@ namespace iCiRC
                 }
             }
             double MaxVesselness = 0.0;
-            for (int i = 0; i < XNum * YNum; i++)
+            for (int i = 0; i < PixelNum; i++)
                 MaxVesselness = Math.Max(MaxVesselness, Vesselness[i]);
             if (MaxVesselness == 0.0)
                 return Vesselness;
-            for (int i = 0; i < XNum * YNum; i++)
+            for (int i = 0; i < PixelNum; i++)
                 Vesselness[i] /= MaxVesselness;
 
             return Vesselness;
@@ -93,7 +90,7 @@ namespace iCiRC
 
         // Krissian et al.'s tubular structure detection
         // Implemented by HNLee
-        public double[] RunKrissianMethod2D(int XNum, int YNum, byte[] ImageIntensity, int SNum, double[] Scale)
+        public double[] RunKrissianModelMethod2D(int XNum, int YNum, byte[] ImageIntensity, int SNum, double[] Scale)
         {
             if (ImageIntensity == null || XNum <= 0 || YNum <= 0 || Scale == null || SNum <= 0)
                 return null;
@@ -177,6 +174,64 @@ namespace iCiRC
                 Response[i] /= MaxResponse;
 
             return Response;
+        }
+
+        // Krissian et al.'s tubular structure detection
+        // Implemented by HNLee
+        public double[] RunKrissianFluxMethod2D(int XNum, int YNum, byte[] ImageIntensity, int IterNum)
+        {
+            if (ImageIntensity == null || XNum <= 0 || YNum <= 0)
+                return null;
+
+            // Src & Des buffer initialization
+            int PixelNum = XNum * YNum;
+            double[] SrcImage = new double[PixelNum];
+            double[] DesImage = new double[PixelNum];
+            for (int i = 0; i < PixelNum; i++)
+                SrcImage[i] = Convert.ToDouble(ImageIntensity[i]);
+            DesImage = (double[])SrcImage.Clone();
+
+            // 
+            const double Lambda = 0.25;
+            for (int iter = 0; iter < IterNum; iter++)  // Time step
+            {
+                // For each pixel
+                for (int y = 1; y < YNum - 1; y++)
+                {
+                    for (int x = 1; x < XNum - 1; x++)
+                    {
+                        int CurrentPixelIndex = y * XNum + x;
+                        double NeighborsSum = EdgeStoppingFunction(Convert.ToDouble(SrcImage[CurrentPixelIndex - 1]) - SrcImage[CurrentPixelIndex]);
+                        NeighborsSum += EdgeStoppingFunction(Convert.ToDouble(SrcImage[CurrentPixelIndex + 1]) - SrcImage[CurrentPixelIndex]);
+                        NeighborsSum += EdgeStoppingFunction(Convert.ToDouble(SrcImage[CurrentPixelIndex - XNum]) - SrcImage[CurrentPixelIndex]);
+                        NeighborsSum += EdgeStoppingFunction(Convert.ToDouble(SrcImage[CurrentPixelIndex + XNum]) - SrcImage[CurrentPixelIndex]);
+                        DesImage[CurrentPixelIndex] = SrcImage[CurrentPixelIndex] + Lambda * NeighborsSum;
+                    }
+                }
+                SrcImage = (double[])DesImage.Clone();
+            }
+            return DesImage;
+        }
+
+        private double EdgeStoppingFunction(double Gradient)
+        {
+            const double Sigma = 9.0;
+            double SigmaPower = Sigma * Sigma;
+            double GradientPower = Gradient * Gradient;
+            //if (GFunctionIndex == 1)
+            return Gradient * Math.Exp(-(GradientPower / SigmaPower));
+            /*
+            else if (GFunctionIndex == 2)
+                return Gradient / (1.0 + GradientPower / SigmaPower);
+            else if (GFunctionIndex == 3 && Math.Abs(Gradient) <= Sigma)
+                return (1.0 - GradientPower / SigmaPower) * (1.0 - GradientPower / SigmaPower) / 2.0;
+            else if (GFunctionIndex == 4 && Math.Abs(Gradient) <= Sigma)
+                return 1.0 / Sigma;
+            else if (GFunctionIndex == 4)
+                return Math.Sign(Gradient) / Gradient;
+            else
+                return 0.0;
+             * */
         }
     }
 }
