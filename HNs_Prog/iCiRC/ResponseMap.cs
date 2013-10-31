@@ -195,20 +195,21 @@ namespace iCiRC
             const double Lambda = 0.25;
             for (int iter = 0; iter < IterNum; iter++)  // Time step
             {
+                // Filter generation for Central Difference Gradient and Central Difference Hessian
+                Filters[] CentralDifferenceGradient = new Filters[2];
+                for (int i = 0; i < 2; i++)
+                    CentralDifferenceGradient[i] = new Filters();
+                CentralDifferenceGradient[0].GenerateCentralDifferenceGradientFilter2D(0);
+                CentralDifferenceGradient[1].GenerateCentralDifferenceGradientFilter2D(1);
+                
                 // For each pixel
                 for (int y = 1; y < YNum - 1; y++)
                 {
                     for (int x = 1; x < XNum - 1; x++)
                     {
-                        //
-                        // TO DO...
-                        // Modify Perona and Malik's anisotropic diffusion -> Krissian's flux-based diffusion
                         int CurrentPixelIndex = y * XNum + x;
-                        double NeighborsSum = EdgeStoppingFunction(Convert.ToDouble(SrcImage[CurrentPixelIndex - 1]) - SrcImage[CurrentPixelIndex]);
-                        NeighborsSum += EdgeStoppingFunction(Convert.ToDouble(SrcImage[CurrentPixelIndex + 1]) - SrcImage[CurrentPixelIndex]);
-                        NeighborsSum += EdgeStoppingFunction(Convert.ToDouble(SrcImage[CurrentPixelIndex - XNum]) - SrcImage[CurrentPixelIndex]);
-                        NeighborsSum += EdgeStoppingFunction(Convert.ToDouble(SrcImage[CurrentPixelIndex + XNum]) - SrcImage[CurrentPixelIndex]);
-                        DesImage[CurrentPixelIndex] = SrcImage[CurrentPixelIndex] + Lambda * NeighborsSum;
+                        DesImage[x] = CentralDifferenceGradient[0].Run2D(XNum, YNum, ImageIntensity, CurrentPixelIndex);
+                        DesImage[y] = CentralDifferenceGradient[1].Run2D(XNum, YNum, ImageIntensity, CurrentPixelIndex);
                     }
                 }
                 SrcImage = (double[])DesImage.Clone();
