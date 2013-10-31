@@ -31,9 +31,8 @@ namespace iCiRC
             }
             else if (Dimension == 1)    // Gradient_Y
             {
-                //
-                // TO DO...
-                //
+                Filter[1] = -0.5;
+                Filter[7] = 0.5;
             }
         }
 
@@ -49,12 +48,22 @@ namespace iCiRC
 
             if (Dimension_1 == 0 && Dimension_2 ==0)         // Hessian_XX
             {
+                Filter[3] = 1.0;
+                Filter[4] = -2.0;
+                Filter[5] = 1.0;
             }
             else if ((Dimension_1 == 0 && Dimension_2 == 1) || (Dimension_1 == 1 && Dimension_2 == 0))    // Hessian_XY or Hessian_YX
             {
+                Filter[0] = 0.25;
+                Filter[2] = -0.25;
+                Filter[6] = -0.25;
+                Filter[8] = 0.25;
             }
             else if (Dimension_1 == 1 && Dimension_2 == 1)    // Hessian_YY
             {
+                Filter[3] = 1.0;
+                Filter[4] = -2.0;
+                Filter[5] = 1.0;
             }
         }
 
