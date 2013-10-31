@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Windows.Forms;
+using Microsoft.DirectX.Direct3D;
 using iCiRC;
 using HNs_Prog.Dialog;
 
@@ -100,6 +101,50 @@ namespace HNs_Prog
             }
         }
 
+        private void ButtonImageSequenceSaveClick(object sender, EventArgs e)
+        {
+            FolderBrowserDialog folderBrowser = new System.Windows.Forms.FolderBrowserDialog();
+            folderBrowser.ShowNewFolderButton = true;
+            DialogResult result = folderBrowser.ShowDialog();
+            if (result == DialogResult.OK)
+            {
+                int ImagePixelNum = VolumeData.XNum * VolumeData.YNum;
+                ProgressWindow winProgress = new ProgressWindow("DICOM Files Saving...", 0, VolumeData.ZNum);
+                winProgress.Show();
+
+                Texture TextureImageFrame = new Texture(GlobalDevice, VolumeData.XNum, VolumeData.YNum, 1, Usage.Dynamic, Format.X8R8G8B8, Pool.Default);
+                for (int z = 0; z < VolumeData.ZNum; z++)
+                {
+                    int ImageIndex = z + 1;
+                    int CurrentFrameIndex = z * ImagePixelNum;
+                    uint[] PixelArray = (uint[])TextureImageFrame.LockRectangle(typeof(uint), 0, LockFlags.Discard, ImagePixelNum);
+                    for (int i = 0; i < ImagePixelNum; i++)
+                    {
+                        byte CurrentPixelIntensity = Convert.ToByte(VolumeData.VolumeDensity[CurrentFrameIndex + i]);
+                        PixelArray[i] = (uint)(Color.FromArgb(CurrentPixelIntensity, CurrentPixelIntensity, CurrentPixelIntensity)).ToArgb();
+                    }
+                    TextureImageFrame.UnlockRectangle(0);
+
+                    string FrameFileName = folderBrowser.SelectedPath + "\\ImageSequence";
+                    if (z < 9)
+                        FrameFileName += "00" + ImageIndex.ToString() + ".bmp";
+                    else if (z < 98)
+                        FrameFileName += "0" + ImageIndex.ToString() + ".bmp";
+                    else
+                        FrameFileName += ImageIndex.ToString() + ".bmp";
+
+                    //string Ext = SaveFileDialogOutput.FileName.Substring(SaveFileDialogOutput.FileName.Length - 3, 3);
+                    //if (Ext.Equals("bmp"))
+                    TextureLoader.Save(FrameFileName, ImageFileFormat.Bmp, TextureImageFrame);
+                    //else if (Ext.Equals("jpg"))
+                    //    TextureLoader.Save(SaveFileDialogOutput.FileName, ImageFileFormat.Jpg, TextureOutput);
+
+                    winProgress.Increment(1);
+                }
+                winProgress.Close();
+            }
+        }
+
         private void ButtonRawFileSaveClick(object sender, EventArgs e)
         {
             SaveFileDialog SaveFileDialogOutput = new SaveFileDialog();
@@ -121,53 +166,5 @@ namespace HNs_Prog
                 this.CheckBoxMasking.Checked = true;
             }
         }
-
-        /*
-        private void ButtonHessianCalculateClick(object sender, EventArgs e)
-        {
-            OutputCalculator = new HessianCalculator();
-            OutputCalculator.Calculate(ref VolumeData, CurrentSliceIndex);
-
-            // RadioButtons
-            RadioButton[] RadioButtonOutput = new RadioButton[9];
-            for (int i = 0; i < 9; i++)
-            {
-                RadioButtonOutput[i] = new RadioButton();
-                RadioButtonOutput[i].AutoSize = true;
-                RadioButtonOutput[i].Checked = false;
-                RadioButtonOutput[i].Location = new System.Drawing.Point(200, (i + 1) * 18);
-                RadioButtonOutput[i].Name = "RadioButtonOutput" + i.ToString();
-                RadioButtonOutput[i].Size = new System.Drawing.Size(400, 17);
-                RadioButtonOutput[i].TabIndex = i;
-                RadioButtonOutput[i].TabStop = true;
-                RadioButtonOutput[i].UseVisualStyleBackColor = true;
-                RadioButtonOutput[i].CheckedChanged += new System.EventHandler(this.RadioButtonOuputCheckedChanged);
-            }
-            RadioButtonOutput[0].Checked = true;
-            RadioButtonOutput[0].Text = "Rut-enhancement Function";
-            RadioButtonOutput[1].Text = "Cup-enhancement Function";
-            RadioButtonOutput[2].Text = "Hessian Response Field";
-            RadioButtonOutput[3].Text = "|Hxx|";
-            RadioButtonOutput[4].Text = "|Hxy|";
-            RadioButtonOutput[5].Text = "|Hxz|";
-            RadioButtonOutput[6].Text = "|Hyy|";
-            RadioButtonOutput[7].Text = "|Hyz|";
-            RadioButtonOutput[8].Text = "|Hzz|";
-
-            this.GroupBoxSliceOutput.Text = "Hessian";
-            this.LabelOutputString.Text = "";
-            while (this.GroupBoxSliceOutput.Controls.Count > 3)
-                this.GroupBoxSliceOutput.Controls.RemoveAt(this.GroupBoxSliceOutput.Controls.Count - 1);
-            for (int i = 0; i < 9; i++)
-                this.GroupBoxSliceOutput.Controls.Add(RadioButtonOutput[i]);
-            this.LabelOutputString.Text = OutputCalculator.OutputString;
-            OutputCalculator.SetOutputImage(ref VolumeData, CurrentSliceIndex, 0);
-            UpdateTextureOutput(OutputCalculator.OutputImage);
-            this.PanelOutputImage.Invalidate();
-
-            this.CheckBoxMasking.Enabled = true;
-            this.CheckBoxMasking.Checked = true;
-        }
-         * */
     }
 }
