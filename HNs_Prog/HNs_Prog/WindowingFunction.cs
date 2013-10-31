@@ -22,17 +22,9 @@ namespace HNs_Prog
             ControlPointIntensity.Add(0);
             ControlPointDensity.Add(MinDensity);
             ControlPointIntensity.Add(0);
-            //ControlPointDensity.Add(24);
-            //ControlPointIntensity.Add(0);
-            //ControlPointDensity.Add(2024);
-            //ControlPointIntensity.Add(255);
-            //ControlPointDensity.Add(MinDensity + DensityStepSize);
-            //ControlPointIntensity.Add(0);
-            //ControlPointDensity.Add(MaxDensity - DensityStepSize);
-            //ControlPointIntensity.Add(255);
-            ControlPointDensity.Add(MaxDensity);
-            ControlPointIntensity.Add(255);
             ControlPointDensity.Add(255);
+            ControlPointIntensity.Add(255);
+            ControlPointDensity.Add(MaxDensity);
             ControlPointIntensity.Add(255);
 
             ThresholdOn = false;

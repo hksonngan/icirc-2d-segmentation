@@ -51,6 +51,7 @@
             this.ButtonRawFileSave = new System.Windows.Forms.Button();
             this.ButtonDICOMSave = new System.Windows.Forms.Button();
             this.ButtonVesselResponse = new System.Windows.Forms.Button();
+            this.ButtonImageSequenceSave = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.TrackBarSliceImage)).BeginInit();
             this.GroupBoxSliceHistogram.SuspendLayout();
             this.GroupBoxSliceOutput.SuspendLayout();
@@ -231,7 +232,7 @@
             // 
             // ButtonRawFileOpen
             // 
-            this.ButtonRawFileOpen.Location = new System.Drawing.Point(603, 433);
+            this.ButtonRawFileOpen.Location = new System.Drawing.Point(603, 403);
             this.ButtonRawFileOpen.Name = "ButtonRawFileOpen";
             this.ButtonRawFileOpen.Size = new System.Drawing.Size(180, 23);
             this.ButtonRawFileOpen.TabIndex = 14;
@@ -241,7 +242,7 @@
             // 
             // ButtonRawFileSave
             // 
-            this.ButtonRawFileSave.Location = new System.Drawing.Point(603, 462);
+            this.ButtonRawFileSave.Location = new System.Drawing.Point(603, 432);
             this.ButtonRawFileSave.Name = "ButtonRawFileSave";
             this.ButtonRawFileSave.Size = new System.Drawing.Size(180, 23);
             this.ButtonRawFileSave.TabIndex = 17;
@@ -249,11 +250,21 @@
             this.ButtonRawFileSave.UseVisualStyleBackColor = true;
             this.ButtonRawFileSave.Click += new System.EventHandler(this.ButtonRawFileSaveClick);
             // 
+            // ButtonImageSequenceSave
+            // 
+            this.ButtonImageSequenceSave.Location = new System.Drawing.Point(603, 470);
+            this.ButtonImageSequenceSave.Name = "ButtonImageSequenceSave";
+            this.ButtonImageSequenceSave.Size = new System.Drawing.Size(180, 23);
+            this.ButtonImageSequenceSave.TabIndex = 24;
+            this.ButtonImageSequenceSave.Text = "Image Sequence Save";
+            this.ButtonImageSequenceSave.UseVisualStyleBackColor = true;
+            this.ButtonImageSequenceSave.Click += new System.EventHandler(this.ButtonImageSequenceSaveClick);
+            // 
             // ButtonDICOMSave
             // 
-            this.ButtonDICOMSave.Location = new System.Drawing.Point(603, 501);
+            this.ButtonDICOMSave.Location = new System.Drawing.Point(603, 499);
             this.ButtonDICOMSave.Name = "ButtonDICOMSave";
-            this.ButtonDICOMSave.Size = new System.Drawing.Size(180, 21);
+            this.ButtonDICOMSave.Size = new System.Drawing.Size(180, 23);
             this.ButtonDICOMSave.TabIndex = 17;
             this.ButtonDICOMSave.Text = "DICOM Save";
             this.ButtonDICOMSave.UseVisualStyleBackColor = true;
@@ -274,6 +285,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
+            this.Controls.Add(this.ButtonImageSequenceSave);
             this.Controls.Add(this.ButtonRawFileSave);
             this.Controls.Add(this.ButtonVesselResponse);
             this.Controls.Add(this.ButtonRawFileOpen);
@@ -325,5 +337,6 @@
         private System.Windows.Forms.Button ButtonRawFileSave;
         private System.Windows.Forms.Button ButtonDICOMSave;
         private System.Windows.Forms.Button ButtonVesselResponse;
+        private System.Windows.Forms.Button ButtonImageSequenceSave;
     }
 }
