@@ -201,6 +201,13 @@ namespace iCiRC
                     CentralDifferenceGradient[i] = new Filters();
                 CentralDifferenceGradient[0].GenerateCentralDifferenceGradientFilter2D(0);
                 CentralDifferenceGradient[1].GenerateCentralDifferenceGradientFilter2D(1);
+
+                Filters[] CentralDifferenceHessian = new Filters[2];
+                for (int i = 0; i < 2; i++)
+                    CentralDifferenceHessian[i] = new Filters();
+                CentralDifferenceHessian[0].GenerateCentralDifferenceHessianFilter2D(0,0);
+                CentralDifferenceHessian[1].GenerateCentralDifferenceHessianFilter2D(0,1);
+                CentralDifferenceHessian[2].GenerateCentralDifferenceHessianFilter2D(1,1);
                 
                 // For each pixel
                 for (int y = 1; y < YNum - 1; y++)
