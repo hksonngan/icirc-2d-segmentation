@@ -225,6 +225,22 @@ namespace iCiRC
                         HessianMatrix[0, 1] =
                         HessianMatrix[1, 0] = CentralDifferenceHessian[1].Run2D(XNum, YNum, ImageIntensity, CurrentPixelIndex);
                         HessianMatrix[1, 1] = CentralDifferenceHessian[2].Run2D(XNum, YNum, ImageIntensity, CurrentPixelIndex);
+
+                        // Compute the direction of maximal and minimal curvature
+                        Vector OrthogonalVector = new Vector(2);
+                        EigenvalueDecomposition EigenDecom = new EigenvalueDecomposition(HessianMatrix);
+                        if (EigenDecom.RealEigenvalues[0] < Math.Abs(EigenDecom.RealEigenvalues[1]))
+                        {
+                            OrthogonalVector[0] = EigenDecom.EigenVectors[0, 1]; //minimal curvature
+                            OrthogonalVector[1] = EigenDecom.EigenVectors[1, 1]; //maximal curvature
+                        }
+                        else
+                        {
+                            OrthogonalVector[0] = EigenDecom.EigenVectors[0, 0];
+                            OrthogonalVector[1] = EigenDecom.EigenVectors[1, 0];
+                        }
+                        double beta = 1.0;
+                        double deltaA = beta * ((SrcImage[CurrentPixelIndex])-());
                     }
                 }
                 SrcImage = (double[])DesImage.Clone();
