@@ -238,6 +238,7 @@ namespace iCiRC
                             OrthogonalVector[0] = EigenDecom.EigenVectors[0, 0];
                             OrthogonalVector[1] = EigenDecom.EigenVectors[1, 0];
                         }
+                        //OrthogonalVector = OrthogonalVector.Normalize();
 
                         Vector eigenvector2 = new Vector(2);
                         EigenvalueDecomposition EigenDecom2 = new EigenvalueDecomposition(HessianMatrix);
@@ -251,6 +252,10 @@ namespace iCiRC
                             eigenvector2[0] = EigenDecom2.EigenVectors[0, 1];
                             eigenvector2[1] = EigenDecom2.EigenVectors[1, 1];
                         }
+                        //eigenvector2 = eigenvector2.Normalize();
+
+                        double FluxXMinus = 0.0;
+                        double[] FluxYMinus = new double[XNum];
 
                         Vector gradient_u = new Vector(2);
                         gradient_u[0] = SrcImage[y * XNum + x + 1] - SrcImage[CurrentPixelIndex]; // u_x
@@ -263,22 +268,32 @@ namespace iCiRC
                                                 + SrcImage[(y + 1) * XNum + x-1] - SrcImage[(y - 1) * XNum + x-1]);
 
                         Vector flux_plus = new Vector(2);
-                        flux_plus[0] = AnisotropicDF_PM(Vector.ScalarProduct(gradient_u, OrthogonalVector) * OrthogonalVector[0]) + (Vector.ScalarProduct(gradient_u, eigenvector2) * eigenvector2[0]); //flux_plus_x
-                        flux_plus[1] = AnisotropicDF_PM(Vector.ScalarProduct(gradient_u, OrthogonalVector) * OrthogonalVector[1]) + (Vector.ScalarProduct(gradient_u, eigenvector2) * eigenvector2[1]); //flux_plus_y;
+                        //flux_plus[0] = AnisotropicDF_PM(Vector.ScalarProduct(gradient_u, OrthogonalVector) * OrthogonalVector[0]) + Vector.ScalarProduct(gradient_u, eigenvector2) * eigenvector2[0]; //flux_plus_x
+                        //flux_plus[1] = AnisotropicDF_PM(Vector.ScalarProduct(gradient_u, OrthogonalVector) * OrthogonalVector[1]) + Vector.ScalarProduct(gradient_u, eigenvector2) * eigenvector2[1]; //flux_plus_y;
+                        flux_plus[0] = AnisotropicDF_PM(gradient_u[0] * OrthogonalVector[0] + gradient_u[1] * OrthogonalVector[1]) * OrthogonalVector[0] 
+                                        + (gradient_u[0] * eigenvector2[0] + gradient_u[1] * eigenvector2[1] * eigenvector2[0]); //flux_plus_x
+                        flux_plus[1] = AnisotropicDF_PM(gradient_u[0] * OrthogonalVector[0] + gradient_u[1] * OrthogonalVector[1]) * OrthogonalVector[1]
+                                        + (gradient_u[0] * eigenvector2[0] + gradient_u[1] * eigenvector2[1] * eigenvector2[1]); //flux_plus_y;
 
-                        Vector flux_minus = new Vector(2);
+                        /*Vector flux_minus = new Vector(2);
                         flux_minus[0] = AnisotropicDF_PM(Vector.ScalarProduct(gradient_u_minus, OrthogonalVector) * OrthogonalVector[0]) + (Vector.ScalarProduct(gradient_u_minus, eigenvector2) * eigenvector2[0]); //flux_minus_x
                         flux_minus[1] = AnisotropicDF_PM(Vector.ScalarProduct(gradient_u_minus, OrthogonalVector) * OrthogonalVector[1]) + (Vector.ScalarProduct(gradient_u_minus, eigenvector2) * eigenvector2[1]); //flux_minus_y;
+                        */
+                        if(x==1)
+                            FluxXMinus = AnisotropicDF_PM(gradient_u_minus[0] * OrthogonalVector[0] + gradient_u_minus[1] * OrthogonalVector[1]) * OrthogonalVector[0]
+                                            + (gradient_u_minus[0] * eigenvector2[0] + gradient_u_minus[1] * eigenvector2[1] * eigenvector2[0]);
+                        if(y==1)
+                            FluxYMinus[x] = AnisotropicDF_PM(gradient_u_minus[0] * OrthogonalVector[0] + gradient_u_minus[1] * OrthogonalVector[1]) * OrthogonalVector[1]
+                                            + (gradient_u_minus[0] * eigenvector2[0] + gradient_u_minus[1] * eigenvector2[1] * eigenvector2[1]);
 
                         double delta_a = ImageIntensity[CurrentPixelIndex] - SrcImage[CurrentPixelIndex];
 
-                        Vector delta_d = new Vector(1);
-                        delta_d[0] = flux_plus[0] - flux_minus[0] + flux_plus[1] - flux_minus[1];
+                        double delta_d = flux_plus[0] - FluxXMinus + flux_plus[1] - FluxYMinus[x];
 
-                        DesImage[CurrentPixelIndex] = SrcImage[CurrentPixelIndex] + delta_a + delta_d[0];
+                        DesImage[CurrentPixelIndex] = SrcImage[CurrentPixelIndex] + delta_a + delta_d;
 
-                        flux_minus[0] = flux_plus[0];
-                        flux_minus[1] = flux_plus[1];
+                        FluxXMinus = flux_plus[0];
+                        FluxYMinus[x] = flux_plus[1];
 
                     }
                 }
