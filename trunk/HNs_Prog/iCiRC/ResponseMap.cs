@@ -202,8 +202,8 @@ namespace iCiRC
                 CentralDifferenceGradient[0].GenerateCentralDifferenceGradientFilter2D(0);
                 CentralDifferenceGradient[1].GenerateCentralDifferenceGradientFilter2D(1);
 
-                Filters[] CentralDifferenceHessian = new Filters[2];
-                for (int i = 0; i < 2; i++)
+                Filters[] CentralDifferenceHessian = new Filters[3];
+                for (int i = 0; i < 3; i++)
                     CentralDifferenceHessian[i] = new Filters();
                 CentralDifferenceHessian[0].GenerateCentralDifferenceHessianFilter2D(0,0);
                 CentralDifferenceHessian[1].GenerateCentralDifferenceHessianFilter2D(0,1);
@@ -215,8 +215,10 @@ namespace iCiRC
                     for (int x = 1; x < XNum - 1; x++)
                     {
                         int CurrentPixelIndex = y * XNum + x;
-                        DesImage[x] = CentralDifferenceGradient[0].Run2D(XNum, YNum, ImageIntensity, CurrentPixelIndex);
-                        DesImage[y] = CentralDifferenceGradient[1].Run2D(XNum, YNum, ImageIntensity, CurrentPixelIndex);
+
+                        Vector GradientVector = new Vector(2);
+                        GradientVector[0] = CentralDifferenceGradient[0].Run2D(XNum, YNum, ImageIntensity, CurrentPixelIndex);
+                        GradientVector[1] = CentralDifferenceGradient[1].Run2D(XNum, YNum, ImageIntensity, CurrentPixelIndex);
                     }
                 }
                 SrcImage = (double[])DesImage.Clone();
