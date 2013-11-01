@@ -239,8 +239,16 @@ namespace iCiRC
                             OrthogonalVector[0] = EigenDecom.EigenVectors[0, 0];
                             OrthogonalVector[1] = EigenDecom.EigenVectors[1, 0];
                         }
-                        double beta = 1.0;
-                        double deltaA = beta * ((SrcImage[CurrentPixelIndex])-());
+
+                        Vector gradient_u = new Vector(2);
+                        gradient_u[0] = SrcImage[y * XNum + x + 1] - SrcImage[CurrentPixelIndex]; // u_x
+                        gradient_u[1] = 0.25 * (SrcImage[(y + 1) * XNum + x + 1] - SrcImage[(y - 1) * XNum + x + 1] // u_y
+                                                + SrcImage[(y + 1) * XNum + x] - SrcImage[(y - 1) * XNum + x]);
+
+                        Vector gradient_u = new Vector(2);
+                        Vector flux_x_plus;
+                        Vector flux_y_plus;
+
                     }
                 }
                 SrcImage = (double[])DesImage.Clone();
@@ -267,6 +275,14 @@ namespace iCiRC
             else
                 return 0.0;
              * */
+        }
+
+        private double AnisotropicDF_PM(double Gradient)
+        {
+            const double threshold = 8.0;
+            double thresholdPower = threshold * threshold;
+            double GradientPower = Gradient * Gradient;
+            return Gradient * Math.Exp(-(GradientPower / thresholdPower));
         }
     }
 }
