@@ -191,8 +191,7 @@ namespace iCiRC
                 SrcImage[i] = Convert.ToDouble(ImageIntensity[i]);
             DesImage = (double[])SrcImage.Clone();
 
-            // 
-            const double Lambda = 0.25;
+
             for (int iter = 0; iter < IterNum; iter++)  // Time step
             {
                 // Filter generation for Central Difference Gradient and Central Difference Hessian
@@ -258,12 +257,12 @@ namespace iCiRC
                         flux_minus[0] = AnisotropicDF_PM(Vector.ScalarProduct(gradient_u_minus, OrthogonalVector) * OrthogonalVector[0]) + (Vector.ScalarProduct(gradient_u_minus, OrthogonalVector) * OrthogonalVector[0]); //flux_minus_x
                         flux_minus[1] = AnisotropicDF_PM(Vector.ScalarProduct(gradient_u_minus, OrthogonalVector) * OrthogonalVector[1]) + (Vector.ScalarProduct(gradient_u_minus, OrthogonalVector) * OrthogonalVector[1]); //flux_minus_y;
 
-                        double delta_a = Convert.ToDouble(ImageIntensity) - SrcImage[CurrentPixelIndex];
+                        double delta_a = ImageIntensity[CurrentPixelIndex] - SrcImage[CurrentPixelIndex];
 
                         Vector delta_d = new Vector(1);
                         delta_d[0] = flux_plus[0] - flux_minus[0] + flux_plus[1] - flux_minus[1];
 
-                        DesImage[CurrentPixelIndex] = SrcImage[CurrentPixelIndex] + delta_a + Convert.ToDouble(delta_d);
+                        DesImage[CurrentPixelIndex] = SrcImage[CurrentPixelIndex] + delta_a + delta_d[0];
 
                         flux_minus[0] = flux_plus[0];
                         flux_minus[1] = flux_plus[1];
