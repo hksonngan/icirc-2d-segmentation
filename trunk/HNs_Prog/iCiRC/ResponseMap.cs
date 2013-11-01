@@ -251,12 +251,22 @@ namespace iCiRC
                                                 + SrcImage[(y + 1) * XNum + x-1] - SrcImage[(y - 1) * XNum + x-1]);
 
                         Vector flux_plus = new Vector(2);
-                        flux_plus[0] = AnisotropicDF_PM(Vector.ScalarProduct(gradient_u, OrthogonalVector) * OrthogonalVector[0]); //flux_plus_x
-                        flux_plus[1] = AnisotropicDF_PM(Vector.ScalarProduct(gradient_u, OrthogonalVector) * OrthogonalVector[1]); //flux_plus_y;
+                        flux_plus[0] = AnisotropicDF_PM(Vector.ScalarProduct(gradient_u, OrthogonalVector) * OrthogonalVector[0]) + (Vector.ScalarProduct(gradient_u, OrthogonalVector) * OrthogonalVector[0]); //flux_plus_x
+                        flux_plus[1] = AnisotropicDF_PM(Vector.ScalarProduct(gradient_u, OrthogonalVector) * OrthogonalVector[1]) + (Vector.ScalarProduct(gradient_u, OrthogonalVector) * OrthogonalVector[1]); //flux_plus_y;
 
                         Vector flux_minus = new Vector(2);
-                        flux_minus[0] = AnisotropicDF_PM(Vector.ScalarProduct(gradient_u_minus, OrthogonalVector) * OrthogonalVector[0]); //flux_minus_x
-                        flux_minus[1] = AnisotropicDF_PM(Vector.ScalarProduct(gradient_u_minus, OrthogonalVector) * OrthogonalVector[1]); //flux_minus_y;
+                        flux_minus[0] = AnisotropicDF_PM(Vector.ScalarProduct(gradient_u_minus, OrthogonalVector) * OrthogonalVector[0]) + (Vector.ScalarProduct(gradient_u_minus, OrthogonalVector) * OrthogonalVector[0]); //flux_minus_x
+                        flux_minus[1] = AnisotropicDF_PM(Vector.ScalarProduct(gradient_u_minus, OrthogonalVector) * OrthogonalVector[1]) + (Vector.ScalarProduct(gradient_u_minus, OrthogonalVector) * OrthogonalVector[1]); //flux_minus_y;
+
+                        double delta_a = Convert.ToDouble(ImageIntensity) - SrcImage[CurrentPixelIndex];
+
+                        Vector delta_d = new Vector(1);
+                        delta_d[0] = flux_plus[0] - flux_minus[0] + flux_plus[1] - flux_minus[1];
+
+                        DesImage[CurrentPixelIndex] = SrcImage[CurrentPixelIndex] + delta_a + Convert.ToDouble(delta_d);
+
+                        flux_minus[0] = flux_plus[0];
+                        flux_minus[1] = flux_plus[1];
 
                     }
                 }
