@@ -245,9 +245,18 @@ namespace iCiRC
                         gradient_u[1] = 0.25 * (SrcImage[(y + 1) * XNum + x + 1] - SrcImage[(y - 1) * XNum + x + 1] // u_y
                                                 + SrcImage[(y + 1) * XNum + x] - SrcImage[(y - 1) * XNum + x]);
 
-                        Vector gradient_u = new Vector(2);
-                        Vector flux_x_plus;
-                        Vector flux_y_plus;
+                        Vector gradient_u_minus = new Vector(2);
+                        gradient_u_minus[0] = SrcImage[CurrentPixelIndex] - SrcImage[y * XNum + x-1]; // u_x
+                        gradient_u_minus[1] = 0.25 * (SrcImage[(y + 1) * XNum + x] - SrcImage[(y - 1) * XNum + x] // u_y
+                                                + SrcImage[(y + 1) * XNum + x-1] - SrcImage[(y - 1) * XNum + x-1]);
+
+                        Vector flux_plus = new Vector(2);
+                        flux_plus[0] = AnisotropicDF_PM(Vector.ScalarProduct(gradient_u, OrthogonalVector) * OrthogonalVector[0]); //flux_plus_x
+                        flux_plus[1] = AnisotropicDF_PM(Vector.ScalarProduct(gradient_u, OrthogonalVector) * OrthogonalVector[1]); //flux_plus_y;
+
+                        Vector flux_minus = new Vector(2);
+                        flux_minus[0] = AnisotropicDF_PM(Vector.ScalarProduct(gradient_u_minus, OrthogonalVector) * OrthogonalVector[0]); //flux_minus_x
+                        flux_minus[1] = AnisotropicDF_PM(Vector.ScalarProduct(gradient_u_minus, OrthogonalVector) * OrthogonalVector[1]); //flux_minus_y;
 
                     }
                 }
