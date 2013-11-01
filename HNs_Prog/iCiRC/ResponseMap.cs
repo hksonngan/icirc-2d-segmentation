@@ -215,10 +215,16 @@ namespace iCiRC
                     for (int x = 1; x < XNum - 1; x++)
                     {
                         int CurrentPixelIndex = y * XNum + x;
-
                         Vector GradientVector = new Vector(2);
                         GradientVector[0] = CentralDifferenceGradient[0].Run2D(XNum, YNum, ImageIntensity, CurrentPixelIndex);
                         GradientVector[1] = CentralDifferenceGradient[1].Run2D(XNum, YNum, ImageIntensity, CurrentPixelIndex);
+
+                        // Get Hessian matrix
+                        Matrix HessianMatrix = new Matrix(2, 2);
+                        HessianMatrix[0, 0] = CentralDifferenceHessian[0].Run2D(XNum, YNum, ImageIntensity, CurrentPixelIndex);
+                        HessianMatrix[0, 1] =
+                        HessianMatrix[1, 0] = CentralDifferenceHessian[1].Run2D(XNum, YNum, ImageIntensity, CurrentPixelIndex);
+                        HessianMatrix[1, 1] = CentralDifferenceHessian[2].Run2D(XNum, YNum, ImageIntensity, CurrentPixelIndex);
                     }
                 }
                 SrcImage = (double[])DesImage.Clone();
