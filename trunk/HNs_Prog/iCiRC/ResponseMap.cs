@@ -190,9 +190,9 @@ namespace iCiRC
             for (int i = 0; i < PixelNum; i++)
                 SrcImage[i] = Convert.ToDouble(ImageIntensity[i]);
             DesImage = (double[])SrcImage.Clone();
+            byte[] TempImage = new byte[PixelNum];
+            TempImage = (byte[])ImageIntensity.Clone();
 
-            double FluxXMinus = 0.0;
-            double[] FluxYMinus = new double[XNum];
             for (int iter = 0; iter < IterNum; iter++)  // Time step
             {
                 // Filter generation for Central Difference Gradient and Central Difference Hessian
@@ -210,21 +210,24 @@ namespace iCiRC
                 CentralDifferenceHessian[2].GenerateCentralDifferenceHessianFilter2D(1,1);
                 
                 // For each pixel
-                for (int y = 1; y < YNum - 1; y++)
+                double FluxXMinus = 0.0;
+                double[] FluxYMinus = new double[XNum];
+                FluxYMinus.Initialize();
+                for (int y = 2; y < YNum - 1; y++)
                 {
-                    for (int x = 1; x < XNum - 1; x++)
+                    for (int x = 2; x < XNum - 1; x++)
                     {
                         int CurrentPixelIndex = y * XNum + x;
-                        Vector GradientVector = new Vector(2);
-                        GradientVector[0] = CentralDifferenceGradient[0].Run2D(XNum, YNum, ImageIntensity, CurrentPixelIndex);
-                        GradientVector[1] = CentralDifferenceGradient[1].Run2D(XNum, YNum, ImageIntensity, CurrentPixelIndex);
+                        //Vector GradientVector = new Vector(2);
+                        //GradientVector[0] = CentralDifferenceGradient[0].Run2D(XNum, YNum, ImageIntensity, CurrentPixelIndex);
+                        //GradientVector[1] = CentralDifferenceGradient[1].Run2D(XNum, YNum, ImageIntensity, CurrentPixelIndex);
 
                         // Get Hessian matrix
                         Matrix HessianMatrix = new Matrix(2, 2);
-                        HessianMatrix[0, 0] = CentralDifferenceHessian[0].Run2D(XNum, YNum, ImageIntensity, CurrentPixelIndex);
+                        HessianMatrix[0, 0] = CentralDifferenceHessian[0].Run2D(XNum, YNum, TempImage, CurrentPixelIndex);
                         HessianMatrix[0, 1] =
-                        HessianMatrix[1, 0] = CentralDifferenceHessian[1].Run2D(XNum, YNum, ImageIntensity, CurrentPixelIndex);
-                        HessianMatrix[1, 1] = CentralDifferenceHessian[2].Run2D(XNum, YNum, ImageIntensity, CurrentPixelIndex);
+                        HessianMatrix[1, 0] = CentralDifferenceHessian[1].Run2D(XNum, YNum, TempImage, CurrentPixelIndex);
+                        HessianMatrix[1, 1] = CentralDifferenceHessian[2].Run2D(XNum, YNum, TempImage, CurrentPixelIndex);
 
                         // Compute the direction of maximal and minimal curvature
                         Vector OrthogonalVector = new Vector(2);
@@ -256,21 +259,21 @@ namespace iCiRC
                         flux_plus[1] = AnisotropicDF_PM(gradient_u[0] * OrthogonalVector[0] + gradient_u[1] * OrthogonalVector[1]) * OrthogonalVector[1]
                                         + (gradient_u[0] * eigenvector2[0] + gradient_u[1] * eigenvector2[1]) * eigenvector2[1]; //flux_plus_y;
 
-                        if (x == 1)
+                        if (x == 2)
                         {
                             Vector gradient_u_minus = new Vector(2);
                             gradient_u_minus[0] = SrcImage[CurrentPixelIndex] - SrcImage[CurrentPixelIndex - 1]; // u_x
-                            gradient_u_minus[1] = 0.25 * (SrcImage[(y + 1) * XNum + x] - SrcImage[(y - 1) * XNum + x] // u_y
-                                                    + SrcImage[(y + 1) * XNum + x-1] - SrcImage[(y - 1) * XNum + x-1]);
+                            gradient_u_minus[1] = 0.25 * (SrcImage[CurrentPixelIndex + XNum] - SrcImage[CurrentPixelIndex - XNum] // u_y
+                                                    + SrcImage[CurrentPixelIndex + XNum - 1] - SrcImage[CurrentPixelIndex - XNum - 1]);
                             FluxXMinus = AnisotropicDF_PM(gradient_u_minus[0] * OrthogonalVector[0] + gradient_u_minus[1] * OrthogonalVector[1]) * OrthogonalVector[0]
                                             + (gradient_u_minus[0] * eigenvector2[0] + gradient_u_minus[1] * eigenvector2[1]) * eigenvector2[0];
                         }
-                        if (y == 1)
+                        if (y == 2)
                         {
                             Vector gradient_u_minus = new Vector(2);
-                            gradient_u_minus[0] = SrcImage[CurrentPixelIndex] - SrcImage[y * XNum + x - 1]; // u_x
-                            gradient_u_minus[1] = 0.25 * (SrcImage[(y + 1) * XNum + x] - SrcImage[(y - 1) * XNum + x] // u_y
-                                                    + SrcImage[(y + 1) * XNum + x - 1] - SrcImage[(y - 1) * XNum + x - 1]);
+                            gradient_u_minus[0] = SrcImage[CurrentPixelIndex - XNum + 1] - SrcImage[CurrentPixelIndex - XNum]; // u_x
+                            gradient_u_minus[1] = 0.25 * (SrcImage[CurrentPixelIndex + 1] - SrcImage[CurrentPixelIndex - 2 * XNum + 1] // u_y
+                                                    + SrcImage[CurrentPixelIndex] - SrcImage[CurrentPixelIndex - 2 * XNum]);
                             FluxYMinus[x] = AnisotropicDF_PM(gradient_u_minus[0] * OrthogonalVector[0] + gradient_u_minus[1] * OrthogonalVector[1]) * OrthogonalVector[1]
                                             + (gradient_u_minus[0] * eigenvector2[0] + gradient_u_minus[1] * eigenvector2[1]) * eigenvector2[1];
                         }
@@ -282,10 +285,18 @@ namespace iCiRC
 
                         FluxXMinus = flux_plus[0];
                         FluxYMinus[x] = flux_plus[1];
-
                     }
                 }
                 SrcImage = (double[])DesImage.Clone();
+                for (int i = 0; i < PixelNum; i++)
+                {
+                    if (SrcImage[i] < 0.0)
+                        TempImage[i] = 0x00;
+                    else if (SrcImage[i] > 255.0)
+                        TempImage[i] = 0xff;
+                    else
+                        TempImage[i] = Convert.ToByte(SrcImage[i]);
+                }
             }
             return DesImage;
         }
