@@ -259,7 +259,7 @@ namespace iCiRC
                         if (x == 1)
                         {
                             Vector gradient_u_minus = new Vector(2);
-                            gradient_u_minus[0] = SrcImage[CurrentPixelIndex] - SrcImage[y * XNum + x-1]; // u_x
+                            gradient_u_minus[0] = SrcImage[CurrentPixelIndex] - SrcImage[CurrentPixelIndex - 1]; // u_x
                             gradient_u_minus[1] = 0.25 * (SrcImage[(y + 1) * XNum + x] - SrcImage[(y - 1) * XNum + x] // u_y
                                                     + SrcImage[(y + 1) * XNum + x-1] - SrcImage[(y - 1) * XNum + x-1]);
                             FluxXMinus = AnisotropicDF_PM(gradient_u_minus[0] * OrthogonalVector[0] + gradient_u_minus[1] * OrthogonalVector[1]) * OrthogonalVector[0]
@@ -290,6 +290,15 @@ namespace iCiRC
             return DesImage;
         }
 
+        private double AnisotropicDF_PM(double Gradient)
+        {
+            const double threshold = 8.0;
+            double thresholdPower = threshold * threshold;
+            double GradientPower = Gradient * Gradient;
+            return Gradient * Math.Exp(-(GradientPower / thresholdPower));
+        }
+
+        /*
         private double EdgeStoppingFunction(double Gradient)
         {
             const double Sigma = 8.0;
@@ -308,15 +317,7 @@ namespace iCiRC
                 return Math.Sign(Gradient) / Gradient;
             else
                 return 0.0;
-             * */
-        }
+        }*/
 
-        private double AnisotropicDF_PM(double Gradient)
-        {
-            const double threshold = 8.0;
-            double thresholdPower = threshold * threshold;
-            double GradientPower = Gradient * Gradient;
-            return Gradient * Math.Exp(-(GradientPower / thresholdPower));
-        }
     }
 }
