@@ -191,7 +191,8 @@ namespace iCiRC
                 SrcImage[i] = Convert.ToDouble(ImageIntensity[i]);
             DesImage = (double[])SrcImage.Clone();
 
-
+            double FluxXMinus = 0.0;
+            double[] FluxYMinus = new double[XNum];
             for (int iter = 0; iter < IterNum; iter++)  // Time step
             {
                 // Filter generation for Central Difference Gradient and Central Difference Hessian
@@ -227,64 +228,57 @@ namespace iCiRC
 
                         // Compute the direction of maximal and minimal curvature
                         Vector OrthogonalVector = new Vector(2);
+                        Vector eigenvector2 = new Vector(2);
                         EigenvalueDecomposition EigenDecom = new EigenvalueDecomposition(HessianMatrix);
                         if (EigenDecom.RealEigenvalues[0] < Math.Abs(EigenDecom.RealEigenvalues[1]))
                         {
+                            eigenvector2[0] = EigenDecom.EigenVectors[0, 0];
+                            eigenvector2[1] = EigenDecom.EigenVectors[1, 0]; 
                             OrthogonalVector[0] = EigenDecom.EigenVectors[0, 1]; //minimal curvature
                             OrthogonalVector[1] = EigenDecom.EigenVectors[1, 1]; //maximal curvature
                         }
                         else
                         {
+                            eigenvector2[0] = EigenDecom.EigenVectors[0, 1];
+                            eigenvector2[1] = EigenDecom.EigenVectors[1, 1];
                             OrthogonalVector[0] = EigenDecom.EigenVectors[0, 0];
                             OrthogonalVector[1] = EigenDecom.EigenVectors[1, 0];
                         }
-                        //OrthogonalVector = OrthogonalVector.Normalize();
 
-                        Vector eigenvector2 = new Vector(2);
-                        EigenvalueDecomposition EigenDecom2 = new EigenvalueDecomposition(HessianMatrix);
-                        if (EigenDecom.RealEigenvalues[0] < Math.Abs(EigenDecom.RealEigenvalues[1]))
-                        {
-                            eigenvector2[0] = EigenDecom2.EigenVectors[0, 0];
-                            eigenvector2[1] = EigenDecom2.EigenVectors[1, 0]; 
-                        }
-                        else
-                        {
-                            eigenvector2[0] = EigenDecom2.EigenVectors[0, 1];
-                            eigenvector2[1] = EigenDecom2.EigenVectors[1, 1];
-                        }
-                        //eigenvector2 = eigenvector2.Normalize();
-
-                        double FluxXMinus = 0.0;
-                        double[] FluxYMinus = new double[XNum];
-
-                        Vector gradient_u = new Vector(2); 
-                        gradient_u[0] = SrcImage[y * XNum + x + 1] - SrcImage[CurrentPixelIndex]; // u_x
-                        gradient_u[1] = 0.25 * (SrcImage[(y + 1) * XNum + x + 1] - SrcImage[(y - 1) * XNum + x + 1] // u_y
-                                                + SrcImage[(y + 1) * XNum + x] - SrcImage[(y - 1) * XNum + x]);
-
-                        Vector gradient_u_minus = new Vector(2);
-                        gradient_u_minus[0] = SrcImage[CurrentPixelIndex] - SrcImage[y * XNum + x-1]; // u_x
-                        gradient_u_minus[1] = 0.25 * (SrcImage[(y + 1) * XNum + x] - SrcImage[(y - 1) * XNum + x] // u_y
-                                                + SrcImage[(y + 1) * XNum + x-1] - SrcImage[(y - 1) * XNum + x-1]);
+                        Vector gradient_u = new Vector(2);
+                        gradient_u[0] = SrcImage[CurrentPixelIndex + 1] - SrcImage[CurrentPixelIndex]; // u_x
+                        gradient_u[1] = 0.25 * (SrcImage[CurrentPixelIndex + XNum + 1] - SrcImage[CurrentPixelIndex - XNum + 1] // u_y
+                                                + SrcImage[CurrentPixelIndex + XNum] - SrcImage[CurrentPixelIndex - XNum]);
 
                         Vector flux_plus = new Vector(2);
                         flux_plus[0] = AnisotropicDF_PM(gradient_u[0] * OrthogonalVector[0] + gradient_u[1] * OrthogonalVector[1]) * OrthogonalVector[0] 
-                                        + (gradient_u[0] * eigenvector2[0] + gradient_u[1] * eigenvector2[1] * eigenvector2[0]); //flux_plus_x
+                                        + (gradient_u[0] * eigenvector2[0] + gradient_u[1] * eigenvector2[1]) * eigenvector2[0]; //flux_plus_x
                         flux_plus[1] = AnisotropicDF_PM(gradient_u[0] * OrthogonalVector[0] + gradient_u[1] * OrthogonalVector[1]) * OrthogonalVector[1]
-                                        + (gradient_u[0] * eigenvector2[0] + gradient_u[1] * eigenvector2[1] * eigenvector2[1]); //flux_plus_y;
+                                        + (gradient_u[0] * eigenvector2[0] + gradient_u[1] * eigenvector2[1]) * eigenvector2[1]; //flux_plus_y;
 
-                        if(x==1)
+                        if (x == 1)
+                        {
+                            Vector gradient_u_minus = new Vector(2);
+                            gradient_u_minus[0] = SrcImage[CurrentPixelIndex] - SrcImage[y * XNum + x-1]; // u_x
+                            gradient_u_minus[1] = 0.25 * (SrcImage[(y + 1) * XNum + x] - SrcImage[(y - 1) * XNum + x] // u_y
+                                                    + SrcImage[(y + 1) * XNum + x-1] - SrcImage[(y - 1) * XNum + x-1]);
                             FluxXMinus = AnisotropicDF_PM(gradient_u_minus[0] * OrthogonalVector[0] + gradient_u_minus[1] * OrthogonalVector[1]) * OrthogonalVector[0]
-                                            + (gradient_u_minus[0] * eigenvector2[0] + gradient_u_minus[1] * eigenvector2[1] * eigenvector2[0]);
-                        if(y==1)
+                                            + (gradient_u_minus[0] * eigenvector2[0] + gradient_u_minus[1] * eigenvector2[1]) * eigenvector2[0];
+                        }
+                        if (y == 1)
+                        {
+                            Vector gradient_u_minus = new Vector(2);
+                            gradient_u_minus[0] = SrcImage[CurrentPixelIndex] - SrcImage[y * XNum + x - 1]; // u_x
+                            gradient_u_minus[1] = 0.25 * (SrcImage[(y + 1) * XNum + x] - SrcImage[(y - 1) * XNum + x] // u_y
+                                                    + SrcImage[(y + 1) * XNum + x - 1] - SrcImage[(y - 1) * XNum + x - 1]);
                             FluxYMinus[x] = AnisotropicDF_PM(gradient_u_minus[0] * OrthogonalVector[0] + gradient_u_minus[1] * OrthogonalVector[1]) * OrthogonalVector[1]
-                                            + (gradient_u_minus[0] * eigenvector2[0] + gradient_u_minus[1] * eigenvector2[1] * eigenvector2[1]);
+                                            + (gradient_u_minus[0] * eigenvector2[0] + gradient_u_minus[1] * eigenvector2[1]) * eigenvector2[1];
+                        }
 
                         double delta_a = ImageIntensity[CurrentPixelIndex] - SrcImage[CurrentPixelIndex];
-
                         double delta_d = flux_plus[0] - FluxXMinus + flux_plus[1] - FluxYMinus[x];
 
-                        DesImage[CurrentPixelIndex] = SrcImage[CurrentPixelIndex] + delta_a + delta_d;
+                        DesImage[CurrentPixelIndex] = SrcImage[CurrentPixelIndex] + delta_d;// +delta_a;
 
                         FluxXMinus = flux_plus[0];
                         FluxYMinus[x] = flux_plus[1];
