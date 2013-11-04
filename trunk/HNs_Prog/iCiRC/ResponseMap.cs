@@ -251,14 +251,14 @@ namespace iCiRC
                         GradientU[1] = 0.25 * (SrcImage[CurrentPixelIndex + XNum + 1] - SrcImage[CurrentPixelIndex - XNum + 1] // u_y
                                                 + SrcImage[CurrentPixelIndex + XNum] - SrcImage[CurrentPixelIndex - XNum]);
                         double FluxXPlus = AnisotropicDF_PM(GradientU[0] * OrthogonalVector[0] + GradientU[1] * OrthogonalVector[1]) * OrthogonalVector[0]
-                                        + (GradientU[0] * EigenVector2[0] + GradientU[1] * EigenVector2[1]) * EigenVector2[0];
+                                        + (GradientU[0] * EigenVector2[0] + GradientU[1] * EigenVector2[1]) * 0.2 * EigenVector2[0];
 
                         // Compute the F_y at the point (x, y + 1/2, z)
                         GradientU[0] = 0.25 * (SrcImage[CurrentPixelIndex + XNum + 1] - SrcImage[CurrentPixelIndex + XNum - 1] // u_x
                                                 + SrcImage[CurrentPixelIndex + 1] - SrcImage[CurrentPixelIndex - 1]);
                         GradientU[1] = 0.5 * (SrcImage[CurrentPixelIndex + XNum] - SrcImage[CurrentPixelIndex]); // u_y
                         double FluxYPlus = AnisotropicDF_PM(GradientU[0] * OrthogonalVector[0] + GradientU[1] * OrthogonalVector[1]) * OrthogonalVector[1]
-                                        + (GradientU[0] * EigenVector2[0] + GradientU[1] * EigenVector2[1]) * EigenVector2[1];
+                                        + (GradientU[0] * EigenVector2[0] + GradientU[1] * EigenVector2[1]) * 0.2 * EigenVector2[1];
                         /*
                         Vector gradient_u = new Vector(2);
                         gradient_u[0] = SrcImage[CurrentPixelIndex + 1] - SrcImage[CurrentPixelIndex]; // u_x
@@ -277,7 +277,7 @@ namespace iCiRC
                             GradientU[1] = 0.25 * (SrcImage[CurrentPixelIndex + XNum] - SrcImage[CurrentPixelIndex - XNum] // u_y
                                                     + SrcImage[CurrentPixelIndex + XNum - 1] - SrcImage[CurrentPixelIndex - XNum - 1]);
                             FluxXMinus = AnisotropicDF_PM(GradientU[0] * OrthogonalVector[0] + GradientU[1] * OrthogonalVector[1]) * OrthogonalVector[0]
-                                            + (GradientU[0] * EigenVector2[0] + GradientU[1] * EigenVector2[1]) * EigenVector2[0];
+                                            + (GradientU[0] * EigenVector2[0] + GradientU[1] * EigenVector2[1]) * 0.2 * EigenVector2[0];
                         }
                         if (y == 2)
                         {
@@ -285,42 +285,35 @@ namespace iCiRC
                                                     + SrcImage[CurrentPixelIndex - XNum + 1] - SrcImage[CurrentPixelIndex - XNum - 1]);
                             GradientU[1] = 0.5 * (SrcImage[CurrentPixelIndex] - SrcImage[CurrentPixelIndex - XNum]); // u_y
                             FluxYMinus[x] = AnisotropicDF_PM(GradientU[0] * OrthogonalVector[0] + GradientU[1] * OrthogonalVector[1]) * OrthogonalVector[1]
-                                            + (GradientU[0] * EigenVector2[0] + GradientU[1] * EigenVector2[1]) * EigenVector2[1];
+                                            + (GradientU[0] * EigenVector2[0] + GradientU[1] * EigenVector2[1]) * 0.2 * EigenVector2[1];
                         }
 
                         double DeltaA = Convert.ToDouble(ImageIntensity[CurrentPixelIndex]) - SrcImage[CurrentPixelIndex];
                         double DeltaD = FluxXPlus - FluxXMinus + FluxYPlus - FluxYMinus[x];
 
-                        DesImage[CurrentPixelIndex] = SrcImage[CurrentPixelIndex] + DeltaD;;// + DeltaA);
+                        DesImage[CurrentPixelIndex] = SrcImage[CurrentPixelIndex] + 0.1 * (DeltaD + 0.05 * DeltaA);
 
                         FluxXMinus = FluxXPlus;
                         FluxYMinus[x] = FluxYPlus;
                     }
                 }
-                SrcImage = (double[])DesImage.Clone();
                 for (int i = 0; i < PixelNum; i++)
                 {
-                    if (SrcImage[i] < 0.0)
-                        TempImageIntensity[i] = 0x00;
-                    else if (SrcImage[i] > 255.0)
-                        TempImageIntensity[i] = 0xff;
-                    else
-                        TempImageIntensity[i] = Convert.ToByte(SrcImage[i]);
+                    if (DesImage[i] < 0.0)
+                        DesImage[i] = 0.0;
+                    else if (DesImage[i] > 255.0)
+                        DesImage[i] = 255.0;
                 }
-            }
-            for (int i = 0; i < PixelNum; i++)
-            {
-                if (DesImage[i] < 0.0)
-                    DesImage[i] = 0.0;
-                else if (DesImage[i] > 255.0)
-                    DesImage[i] = 255.0;
+                SrcImage = (double[])DesImage.Clone();
+                for (int i = 0; i < PixelNum; i++)
+                    TempImageIntensity[i] = Convert.ToByte(DesImage[i]);
             }
             return DesImage;
         }
 
         private double AnisotropicDF_PM(double Gradient)
         {
-            const double threshold = 8.0;
+            const double threshold = 10.0;
             double thresholdPower = threshold * threshold;
             double GradientPower = Gradient * Gradient;
             return Gradient * Math.Exp(-(GradientPower / thresholdPower));

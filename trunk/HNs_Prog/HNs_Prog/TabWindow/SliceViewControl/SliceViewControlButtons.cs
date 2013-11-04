@@ -49,7 +49,7 @@ namespace HNs_Prog
             }
             else if (VesselEnhancementDialog.MethodIndex == VEDialog.VEMethod.KrissianFlux)
             {
-                const int IterNum = 5;
+                const int IterNum = 50;
                 ResultMap = map.RunKrissianFluxMethod2D(VolumeData.XNum, VolumeData.YNum, CurrentXraySlice, IterNum);
                 for (int i = 0; i < VolumeData.XNum * VolumeData.YNum; i++)
                     CurrentXraySlice[i] = Convert.ToByte(ResultMap[i]);
