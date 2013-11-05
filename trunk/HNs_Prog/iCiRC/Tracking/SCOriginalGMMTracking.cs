@@ -7,24 +7,53 @@ namespace iCiRC
 {
     public class SCOriginalGMMTracking : VesselTracking
     {
-        public override byte[] RunTracking(int XNum, int YNum, int ZNum, ushort[] ImageIntensity)
+        int BackModelNum, ForeModelNum;
+        SpatialGaussianModel[] BackSpatialComponent;
+        SpatialGaussianModel[] ForeSpatialComponent;
+
+        int XNum, YNum, FrameNum;
+        ushort[] FrameIntensity;
+        byte[] FrameMask;
+
+        public override byte[] RunTracking(int paraXNum, int paraYNum, int paraZNum, ushort[] paraImageIntensity)
         {
-            if (ImageIntensity == null || XNum <= 0 || YNum <= 0 || ZNum <= 0)
+            if (paraImageIntensity == null || paraXNum <= 0 || paraYNum <= 0 || paraZNum <= 0)
                 return null;
 
-            // Result buffer initialization
-            int SlicePixelNum = XNum * YNum;
-            int TotalPixelNum = SlicePixelNum * ZNum;
-            byte[] ResultMask = new byte[TotalPixelNum];
-            ResultMask.Initialize();
+            XNum = paraXNum;
+            YNum = paraYNum;
+            FrameNum = paraZNum;
+            FrameIntensity = paraImageIntensity;
 
-            // For each frame
-            for (int z = 0; z < ZNum; z++)
+            // Result buffer initialization
+            int FramePixelNum = XNum * YNum;
+            int TotalPixelNum = FramePixelNum * FrameNum;
+            FrameMask = new byte[TotalPixelNum];
+            FrameMask.Initialize();
+
+            // For the first frame
+            InitializeGMMModel();
+
+            // For each frame 
+            for (int f = 1; f < FrameNum; f++)
             {
 
             }
 
-            return ResultMask;
+            return FrameMask;
+        }
+
+        private void InitializeGMMModel()
+        {
+            int FramePixelNum = XNum * YNum;
+
+            // Initial segmentation using thresholding
+            const ushort VesselIntensityThresholdValue = 128;
+            for (int i = 0; i < FramePixelNum; i++)
+            {
+                if (FrameIntensity[i] < VesselIntensityThresholdValue)
+                    FrameMask[i] = 0xff;
+            }
         }
     }
 }
