@@ -33,16 +33,6 @@
             this.ButtonRun = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
-            // ButtonRun
-            // 
-            this.ButtonRun.Location = new System.Drawing.Point(13, 227);
-            this.ButtonRun.Name = "ButtonRun";
-            this.ButtonRun.Size = new System.Drawing.Size(75, 23);
-            this.ButtonRun.TabIndex = 0;
-            this.ButtonRun.Text = "Run";
-            this.ButtonRun.UseVisualStyleBackColor = true;
-            this.ButtonRun.Click += new System.EventHandler(this.ButtonRunClick);
-            // 
             // RadioButtonGMMSCOriginal
             // 
             this.RadioButtonGMMSCOriginal.AutoSize = true;
@@ -67,6 +57,16 @@
             this.RadioButtonGMMSIFrangi.Text = "Our Spatial-Intensity-Frangi GMM Model";
             this.RadioButtonGMMSIFrangi.UseVisualStyleBackColor = true;
             this.RadioButtonGMMSIFrangi.CheckedChanged += new System.EventHandler(this.RadioButtonCheckedChanged);
+            // 
+            // ButtonRun
+            // 
+            this.ButtonRun.Location = new System.Drawing.Point(13, 227);
+            this.ButtonRun.Name = "ButtonRun";
+            this.ButtonRun.Size = new System.Drawing.Size(369, 23);
+            this.ButtonRun.TabIndex = 0;
+            this.ButtonRun.Text = "Run";
+            this.ButtonRun.UseVisualStyleBackColor = true;
+            this.ButtonRun.Click += new System.EventHandler(this.ButtonRunClick);
             // 
             // GMMDialog
             // 
