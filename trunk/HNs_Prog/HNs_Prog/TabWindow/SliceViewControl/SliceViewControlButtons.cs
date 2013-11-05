@@ -66,13 +66,15 @@ namespace HNs_Prog
 
             VolumeData.VolumeMask = new byte[VolumeData.XNum * VolumeData.YNum * VolumeData.ZNum];
             VolumeData.VolumeMask.Initialize();
-            VesselTracking tracker = new VesselTracking();
             if (GMMModelDialog.ModelIndex == GMMDialog.GMMModel.SCOriginal)
             {
-                VolumeData.VolumeMask = tracker.RunSCOriginalGMMTracking(VolumeData.XNum, VolumeData.YNum, VolumeData.ZNum, VolumeData.VolumeDensity);
+                VesselTracking tracker = new SCOriginalGMMTracking();
+                VolumeData.VolumeMask = tracker.RunTracking(VolumeData.XNum, VolumeData.YNum, VolumeData.ZNum, VolumeData.VolumeDensity);
             }
             else if (GMMModelDialog.ModelIndex == GMMDialog.GMMModel.SIFrangi)
             {
+                VesselTracking tracker = new SIFrangiGMMTracking();
+                VolumeData.VolumeMask = tracker.RunTracking(VolumeData.XNum, VolumeData.YNum, VolumeData.ZNum, VolumeData.VolumeDensity);
             }
         }
 
