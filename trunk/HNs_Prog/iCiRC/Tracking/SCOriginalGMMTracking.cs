@@ -71,8 +71,7 @@ namespace iCiRC
                     FrameMask[i] = 0xff;
             }
 
-            // 1st expectation step
-
+            // 1st E-step
             double[][] AssignmentProbability = new double[FramePixelNum][];
             for (int i = 0; i < FramePixelNum; i++)
             {
@@ -89,16 +88,25 @@ namespace iCiRC
                         AssignmentProbability[i][k] = 1.0 / Convert.ToDouble(ForeModelNum);
                 }
             }
-            // 1st maximation step
-
+            // 1st M-step
+            MaximizationStep(0, AssignmentProbability);
 
             const int EMIterNum = 30;
-            for (int iter = 0; iter < EMIterNum; iter++)
+            for (int iter = 1; iter < EMIterNum; iter++)
             {
-                // expectation step
+                // E-step: Update AssignmentProbability
+                double[] GMMProbability = new double[TotalModelNum];
+                GMMProbability.Initialize();
 
-                // maximization step
+                for (int k = 0; k < BackModelNum; k++)
+                {
+                }
+                for (int k = BackModelNum; k < TotalModelNum; k++)
+                {
+                }
 
+                // M-step
+                MaximizationStep(0, AssignmentProbability);
             }
 
         }

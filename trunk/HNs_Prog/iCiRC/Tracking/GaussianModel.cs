@@ -22,5 +22,15 @@ namespace iCiRC
             IntensityVar = 0.0;
             Weight = 0.0;
         }
+
+        public double GetGaussianProbability(Vector Spatial)
+        {
+            return 0.0;
+        }
+
+        public double GetGaussianProbability(double Intensity)
+        {
+            return 0.0;
+        }
     }
 }
