@@ -69,8 +69,8 @@
     <Compile Include="Filters.cs" />
     <Compile Include="Point.cs" />
     <Compile Include="ResponseMap.cs" />
-    <Compile Include="VesselEnhancement.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="VesselTracking.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AlgLib\AlgLib.csproj">

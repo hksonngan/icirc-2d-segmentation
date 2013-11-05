@@ -59,6 +59,23 @@ namespace HNs_Prog
             this.PanelOutputImage.Invalidate();
         }
 
+        private void ButtonGMMTrackingClick(object sender, EventArgs e)
+        {
+            GMMDialog GMMModelDialog = new GMMDialog();
+            GMMModelDialog.ShowDialog();
+
+            VolumeData.VolumeMask = new byte[VolumeData.XNum * VolumeData.YNum * VolumeData.ZNum];
+            VolumeData.VolumeMask.Initialize();
+            VesselTracking tracker = new VesselTracking();
+            if (GMMModelDialog.ModelIndex == GMMDialog.GMMModel.SCOriginal)
+            {
+                VolumeData.VolumeMask = tracker.RunSCOriginalGMMTracking(VolumeData.XNum, VolumeData.YNum, VolumeData.ZNum, VolumeData.VolumeDensity);
+            }
+            else if (GMMModelDialog.ModelIndex == GMMDialog.GMMModel.SIFrangi)
+            {
+            }
+        }
+
         private void ButtonDICOMSaveClick(object sender, EventArgs e)
         {
             FolderBrowserDialog folderBrowser = new System.Windows.Forms.FolderBrowserDialog();
