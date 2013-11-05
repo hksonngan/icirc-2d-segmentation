@@ -70,9 +70,9 @@
     <Compile Include="Point.cs" />
     <Compile Include="ResponseMap.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SCOriginalGMMTracking.cs" />
-    <Compile Include="SIFrangiGMMTracking.cs" />
-    <Compile Include="VesselTracking.cs" />
+    <Compile Include="Tracking\SCOriginalGMMTracking.cs" />
+    <Compile Include="Tracking\SIFrangiGMMTracking.cs" />
+    <Compile Include="Tracking\VesselTracking.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AlgLib\AlgLib.csproj">
