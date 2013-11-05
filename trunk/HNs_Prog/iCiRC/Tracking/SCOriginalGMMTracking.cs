@@ -95,17 +95,29 @@ namespace iCiRC
             for (int iter = 1; iter < EMIterNum; iter++)
             {
                 // E-step: Update AssignmentProbability
-                double[] GMMProbability = new double[TotalModelNum];
-                GMMProbability.Initialize();
-
-                for (int k = 0; k < BackModelNum; k++)
+                for (int y = 0; y < YNum; y++)
                 {
-                }
-                for (int k = BackModelNum; k < TotalModelNum; k++)
-                {
+                    for (int x = 0; x < XNum; x++)
+                    {
+                        int CurrentPixelIndex = y * XNum + x;
+                        double[] GMMProbability = new double[TotalModelNum];
+                        GMMProbability.Initialize();
+                        double SumGMMProbability = 0.0;
+                        Vector CurrrentPixelSpatial = new Vector(2);
+                        CurrrentPixelSpatial[0] = Convert.ToDouble(x);
+                        CurrrentPixelSpatial[1] = Convert.ToDouble(y);
+                        double CurrentPixelIntensity = Convert.ToDouble(FrameIntensity[CurrentPixelIndex]);
+                        for (int k = 0; k < TotalModelNum; k++)
+                        {
+                            GMMProbability[k] = GMMComponent[k].Weight * GMMComponent[k].GetGaussianProbability(CurrrentPixelSpatial)
+                                                * GMMComponent[k].GetGaussianProbability(CurrentPixelIntensity);
+                            SumGMMProbability += GMMProbability[k];
+                        }
+                        for (int k = 0; k < TotalModelNum; k++)
+                            AssignmentProbability[CurrentPixelIndex][k] = GMMProbability[k] / SumGMMProbability;
+                    }
                 }
 
-                // M-step
                 MaximizationStep(0, AssignmentProbability);
             }
 
