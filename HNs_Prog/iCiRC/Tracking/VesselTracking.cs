@@ -11,7 +11,7 @@ namespace iCiRC
         {
         }
 
-        public virtual byte[] RunTracking(int XNum, int YNum, int ZNum, ushort[] ImageIntensity)
+        public virtual byte[] RunTracking(int paraXNum, int paraYNum, int paraZNum, ushort[] paraImageIntensity)
         {
             return null;
         }
