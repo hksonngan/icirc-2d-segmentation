@@ -13,6 +13,8 @@ namespace iCiRC
 
         //---------------------------------------------------------------------------
         /** @brief Run a vessel tracking algorithm for a X-ray image sequence
+            @authur Hyunna Lee
+            @date 2013.11.05
             @param paraXNum : the width of each frame
             @param paraYNum : the height of each frame
             @param paraZNum : the number of frames
