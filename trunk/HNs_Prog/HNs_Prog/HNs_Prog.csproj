@@ -94,6 +94,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Dialog\GMMDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Dialog\GMMDialog.Designer.cs">
+      <DependentUpon>GMMDialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="Dialog\VEDialog.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -127,6 +133,9 @@
       <DependentUpon>ProgressWindow.cs</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="Dialog\GMMDialog.resx">
+      <DependentUpon>GMMDialog.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Dialog\VEDialog.resx">
       <DependentUpon>VEDialog.cs</DependentUpon>
     </EmbeddedResource>

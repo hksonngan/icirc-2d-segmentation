@@ -20,12 +20,6 @@ namespace HNs_Prog.Dialog
             MethodIndex = VEMethod.Frangi;
         }
 
-        public VEDialog(ref Volume refVolumeData, int SliceIndex)
-        {
-            InitializeComponent();
-            MethodIndex = VEMethod.Frangi;
-        }
-
         private void ButtonRunClick(object sender, EventArgs e)
         {
             this.Close();
