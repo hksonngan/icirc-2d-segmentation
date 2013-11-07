@@ -30,6 +30,14 @@ namespace iCiRC
             Weight = 0.0;
         }
 
+        //---------------------------------------------------------------------------
+        /** @brief Gaussian probability density function for bivariate
+            @author Hyunna Lee
+            @date 2013.11.07
+            @param Spatial : Spatial component of the current instant 
+            @return Probability of the current (spatial) instant
+        */
+        //-------------------------------------------------------------------------
         public double GetGaussianProbability(Vector Spatial)
         {
             Vector DifferenceVector = new Vector(2);
@@ -43,6 +51,14 @@ namespace iCiRC
             return Math.Exp(-Difference / 2.0) / ((2.0 * Math.PI) * Math.Sqrt(det));
         }
 
+        //---------------------------------------------------------------------------
+        /** @brief Gaussian probability density function for univariate
+            @author Hyunna Lee
+            @date 2013.11.07
+            @param Spatial : Intensity component of the current instant 
+            @return Probability of the current (intensity) instant
+        */
+        //-------------------------------------------------------------------------
         public double GetGaussianProbability(double Intensity)
         {
             double Difference = Intensity - IntensityMean;
