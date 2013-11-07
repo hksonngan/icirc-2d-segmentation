@@ -6,13 +6,20 @@ using MathNet.Numerics.LinearAlgebra;
 
 namespace iCiRC
 {
+    //---------------------------------------------------------------------------
+    /** @class SpatialColorGaussianModel
+        @author Hyunna Lee
+        @date 2013.11.07
+        @brief GMM Model parameters for spatial and intensity components
+    */
+    //-------------------------------------------------------------------------
     class SpatialColorGaussianModel
     {
-        public Vector SpatialMean;
-        public Matrix SpatialCoVar;
-        public double IntensityMean;
-        public double IntensityVar;
-        public double Weight;
+        public Vector SpatialMean;      ///< Mean of spatial component (x, y)
+        public Matrix SpatialCoVar;     ///< Covariance matrix of spatial component (xx, xy; yx, yy)
+        public double IntensityMean;    ///< Mean of intensity component
+        public double IntensityVar;     ///< Covariance of intensity component
+        public double Weight;           ///< Weight of this GMM component in the mixture model
 
         public SpatialColorGaussianModel()
         {
