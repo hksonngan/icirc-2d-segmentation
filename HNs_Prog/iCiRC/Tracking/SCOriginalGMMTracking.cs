@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using MathNet.Numerics.LinearAlgebra;
-
+using System.Runtime.InteropServices;
 
 namespace iCiRC
 {
     public class SCOriginalGMMTracking : VesselTracking
-    {
+    { 
         int BackModelNum, ForeModelNum;
         SpatialColorGaussianModel[] GMMComponent;
 
@@ -73,6 +73,7 @@ namespace iCiRC
                 MaximizationStepInPreUpdating(f, AssignmentProbability);
 
                 // Segmentation
+                
 
                 // Post-undating
                 ExpectationStepInPostUpdating(ref AssignmentProbability);
