@@ -66,6 +66,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Constants.cs" />
     <Compile Include="Filters.cs" />
     <Compile Include="Tracking\GaussianModel.cs" />
     <Compile Include="Point.cs" />

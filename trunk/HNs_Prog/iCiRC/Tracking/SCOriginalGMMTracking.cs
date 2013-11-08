@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using MathNet.Numerics.LinearAlgebra;
 
+
 namespace iCiRC
 {
     public class SCOriginalGMMTracking : VesselTracking
@@ -14,6 +15,13 @@ namespace iCiRC
         int XNum, YNum, FrameNum;
         ushort[] FrameIntensity;
         byte[] FrameMask;
+
+        public SCOriginalGMMTracking()
+        {
+            BackModelNum = 15;
+            ForeModelNum = 15;
+            GMMComponent = new SpatialColorGaussianModel[BackModelNum + ForeModelNum];
+        }
 
         //---------------------------------------------------------------------------
         /** @brief Run a vessel tracking algorithm for a X-ray image sequence
@@ -43,24 +51,60 @@ namespace iCiRC
             FrameMask = new byte[TotalPixelNum];
             FrameMask.Initialize();
 
-            // For the first frame
-            InitializeGMMModel();
+            // For the first frame (Post-updating)
+            int TotalModelNum = BackModelNum + ForeModelNum;
+            double[][] AssignmentProbability = InitialExpectationStep();
+            MaximizationStepInPostUpdating(0, AssignmentProbability);
+            const int EMIterNum = 30;
+            for (int iter = 1; iter < EMIterNum; iter++)
+            {
+                ExpectationStepInPostUpdating(ref AssignmentProbability);
+                MaximizationStepInPostUpdating(0, AssignmentProbability);
+            }
 
             // For each frame 
             for (int f = 1; f < FrameNum; f++)
             {
+                // Weight calibration (Fore/back seperated GMM -> Global GMM)
+                GMMComponentWeightCalibration(f - 1);
 
+                // Pre-updating
+                ExpectationStepInPreUpdating(ref AssignmentProbability);
+                MaximizationStepInPreUpdating(f, AssignmentProbability);
+
+                // Segmentation
+
+                // Post-undating
+                ExpectationStepInPostUpdating(ref AssignmentProbability);
+                MaximizationStepInPostUpdating(f, AssignmentProbability);
             }
 
             return FrameMask;
         }
 
-        private void InitializeGMMModel()
+        void GMMComponentWeightCalibration(int PreviousFrameIndex)
         {
-            BackModelNum = 15;
-            ForeModelNum = 15;
+            int FramePixelNum = XNum * YNum;
+            int BackgroundPixelCnt = 0;
+            int PreviousFramePixelOffset = PreviousFrameIndex * FramePixelNum;
+            for (int i = 0; i < FramePixelNum; i++)
+            {
+                if (FrameMask[PreviousFramePixelOffset + i] == Constants.LABEL_BACKGROUND)
+                    BackgroundPixelCnt++;
+            }
+            double BackgroundPriorProbability = Convert.ToDouble(BackgroundPixelCnt) / Convert.ToDouble(FramePixelNum);
+            double ForegroundPriorProbability = 1.0 - BackgroundPriorProbability;
+
             int TotalModelNum = BackModelNum + ForeModelNum;
-            GMMComponent = new SpatialColorGaussianModel[TotalModelNum];
+            for (int k = 0; k < BackModelNum; k++)
+                GMMComponent[k].Weight *= BackgroundPriorProbability;
+            for (int k = BackModelNum; k < TotalModelNum; k++)
+                GMMComponent[k].Weight *= ForegroundPriorProbability;
+        }
+
+        double[][] InitialExpectationStep()
+        {
+            int TotalModelNum = BackModelNum + ForeModelNum;
 
             // Initial segmentation using thresholding
             int FramePixelNum = XNum * YNum;
@@ -68,7 +112,7 @@ namespace iCiRC
             for (int i = 0; i < FramePixelNum; i++)
             {
                 if (FrameIntensity[i] < VesselIntensityThresholdValue)
-                    FrameMask[i] = 0xff;
+                    FrameMask[i] = Constants.LABEL_FOREGROUND;
             }
 
             // 1st E-step
@@ -79,51 +123,93 @@ namespace iCiRC
                 AssignmentProbability[i].Initialize();
                 for (int k = 0; k < BackModelNum; k++)
                 {
-                    if (FrameMask[i] == 0x00)
+                    if (FrameMask[i] == Constants.LABEL_BACKGROUND)
                         AssignmentProbability[i][k] = 1.0 / Convert.ToDouble(BackModelNum);
                 }
                 for (int k = BackModelNum; k < TotalModelNum; k++)
                 {
-                    if (FrameMask[i] == 0xff)
+                    if (FrameMask[i] == Constants.LABEL_FOREGROUND)
                         AssignmentProbability[i][k] = 1.0 / Convert.ToDouble(ForeModelNum);
                 }
             }
-            // 1st M-step
-            MaximizationStep(0, AssignmentProbability);
+            return AssignmentProbability;
+        }
 
-            const int EMIterNum = 30;
-            for (int iter = 1; iter < EMIterNum; iter++)
+        void ExpectationStepInPreUpdating(ref double[][] AssignmentProbability)
+        {
+            int TotalModelNum = BackModelNum + ForeModelNum;
+            // E-step: Update AssignmentProbability
+            for (int y = 0; y < YNum; y++)
             {
-                // E-step: Update AssignmentProbability
-                for (int y = 0; y < YNum; y++)
+                for (int x = 0; x < XNum; x++)
                 {
-                    for (int x = 0; x < XNum; x++)
+                    int CurrentPixelIndex = y * XNum + x;
+                    double[] GMMProbability = new double[TotalModelNum];
+                    GMMProbability.Initialize();
+                    double SumGMMProbability = 0.0;
+                    Vector CurrrentPixelSpatial = new Vector(2);
+                    CurrrentPixelSpatial[0] = Convert.ToDouble(x);
+                    CurrrentPixelSpatial[1] = Convert.ToDouble(y);
+                    double CurrentPixelIntensity = Convert.ToDouble(FrameIntensity[CurrentPixelIndex]);
+                    for (int k = 0; k < TotalModelNum; k++)
                     {
-                        int CurrentPixelIndex = y * XNum + x;
-                        double[] GMMProbability = new double[TotalModelNum];
-                        GMMProbability.Initialize();
-                        double SumGMMProbability = 0.0;
-                        Vector CurrrentPixelSpatial = new Vector(2);
-                        CurrrentPixelSpatial[0] = Convert.ToDouble(x);
-                        CurrrentPixelSpatial[1] = Convert.ToDouble(y);
-                        double CurrentPixelIntensity = Convert.ToDouble(FrameIntensity[CurrentPixelIndex]);
-                        for (int k = 0; k < TotalModelNum; k++)
+                        GMMProbability[k] = GMMComponent[k].Weight * GMMComponent[k].GetGaussianProbability(CurrrentPixelSpatial)
+                                            * GMMComponent[k].GetGaussianProbability(CurrentPixelIntensity);
+                        SumGMMProbability += GMMProbability[k];
+                    }
+                    for (int k = 0; k < TotalModelNum; k++)
+                        AssignmentProbability[CurrentPixelIndex][k] = GMMProbability[k] / SumGMMProbability;
+                }
+            }
+        }
+
+        void ExpectationStepInPostUpdating(ref double[][] AssignmentProbability)
+        {
+            int TotalModelNum = BackModelNum + ForeModelNum;
+            for (int y = 0; y < YNum; y++)
+            {
+                for (int x = 0; x < XNum; x++)
+                {
+                    int CurrentPixelIndex = y * XNum + x;
+                    double[] GMMProbability = new double[TotalModelNum];
+                    GMMProbability.Initialize();
+                    double SumGMMProbability = 0.0;
+                    Vector CurrrentPixelSpatial = new Vector(2);
+                    CurrrentPixelSpatial[0] = Convert.ToDouble(x);
+                    CurrrentPixelSpatial[1] = Convert.ToDouble(y);
+                    double CurrentPixelIntensity = Convert.ToDouble(FrameIntensity[CurrentPixelIndex]);
+
+                    if (FrameMask[CurrentPixelIndex] == Constants.LABEL_BACKGROUND)
+                    {
+                        for (int k = 0; k < BackModelNum; k++)
                         {
                             GMMProbability[k] = GMMComponent[k].Weight * GMMComponent[k].GetGaussianProbability(CurrrentPixelSpatial)
                                                 * GMMComponent[k].GetGaussianProbability(CurrentPixelIntensity);
                             SumGMMProbability += GMMProbability[k];
                         }
-                        for (int k = 0; k < TotalModelNum; k++)
+                        for (int k = 0; k < BackModelNum; k++)
+                            AssignmentProbability[CurrentPixelIndex][k] = GMMProbability[k] / SumGMMProbability;
+                        for (int k = BackModelNum; k < TotalModelNum; k++)
+                            AssignmentProbability[CurrentPixelIndex][k] = 0.0;
+                    }
+                    else if (FrameMask[CurrentPixelIndex] == Constants.LABEL_FOREGROUND)
+                    {
+                        for (int k = BackModelNum; k < TotalModelNum; k++)
+                        {
+                            GMMProbability[k] = GMMComponent[k].Weight * GMMComponent[k].GetGaussianProbability(CurrrentPixelSpatial)
+                                                * GMMComponent[k].GetGaussianProbability(CurrentPixelIntensity);
+                            SumGMMProbability += GMMProbability[k];
+                        }
+                        for (int k = 0; k < BackModelNum; k++)
+                            AssignmentProbability[CurrentPixelIndex][k] = 0.0;
+                        for (int k = BackModelNum; k < TotalModelNum; k++)
                             AssignmentProbability[CurrentPixelIndex][k] = GMMProbability[k] / SumGMMProbability;
                     }
                 }
-
-                MaximizationStep(0, AssignmentProbability);
             }
-
         }
-        
-        private void MaximizationStep(int CurrentFrameIndex, double[][] AssignmentProbability)
+
+        private void MaximizationStepInPreUpdating(int CurrentFrameIndex, double[][] AssignmentProbability)
         {
             int FramePixelNum = XNum * YNum;
             int CurrentFrameOffset = CurrentFrameIndex + FramePixelNum;
@@ -179,6 +265,141 @@ namespace iCiRC
                         SumSpatialVariance[k][1, 0] += AssignmentProbability[CurrentPixelIndex][k] * SpatialDifference[1] * SpatialDifference[0];
                         SumSpatialVariance[k][1, 1] += AssignmentProbability[CurrentPixelIndex][k] * SpatialDifference[1] * SpatialDifference[1];
                         SumIntensityVariance[k] += AssignmentProbability[CurrentPixelIndex][k] * IntensityDifference * IntensityDifference;
+                    }
+                }
+                GMMComponent[k].SpatialCoVar[0, 0] = SumSpatialVariance[k][0, 0] / SumProbability[k];
+                GMMComponent[k].SpatialCoVar[0, 1] = SumSpatialVariance[k][0, 1] / SumProbability[k];
+                GMMComponent[k].SpatialCoVar[1, 0] = SumSpatialVariance[k][1, 0] / SumProbability[k];
+                GMMComponent[k].SpatialCoVar[1, 1] = SumSpatialVariance[k][1, 1] / SumProbability[k];
+                GMMComponent[k].IntensityVar = SumIntensityVariance[k] / SumProbability[k];
+
+                // Compute the Weight
+                GMMComponent[k].Weight = SumProbability[k] / TotalSumAssignmentProbability;
+            }
+        }
+
+        private void MaximizationStepInPostUpdating(int CurrentFrameIndex, double[][] AssignmentProbability)
+        {
+            int FramePixelNum = XNum * YNum;
+            int CurrentFrameOffset = CurrentFrameIndex + FramePixelNum;
+            int TotalModelNum = BackModelNum + ForeModelNum;
+            double[] SumProbability = new double[TotalModelNum];
+            Vector[] SumSpatial = new Vector[TotalModelNum];
+            double[] SumIntensity = new double[TotalModelNum];
+            SumProbability.Initialize();
+            SumIntensity.Initialize();
+            double TotalSumAssignmentProbability = 0.0;
+            Matrix[] SumSpatialVariance = new Matrix[TotalModelNum];
+            double[] SumIntensityVariance = new double[TotalModelNum];
+            SumIntensityVariance.Initialize();
+
+            // For background GMM Model
+            for (int k = 0; k < BackModelNum; k++)
+            {
+                // Compute the Mean 
+                SumSpatial[k] = new Vector(2);
+                SumSpatial[k][0] = SumSpatial[k][1] = 0.0;
+                for (int y = 0; y < YNum; y++)
+                {
+                    for (int x = 0; x < XNum; x++)
+                    {
+                        int CurrentPixelIndex = y * XNum + x;
+                        if (FrameMask[CurrentFrameOffset + CurrentPixelIndex] == Constants.LABEL_BACKGROUND)
+                        {
+                            SumProbability[k] += AssignmentProbability[CurrentPixelIndex][k];
+                            SumSpatial[k][0] += AssignmentProbability[CurrentPixelIndex][k] * Convert.ToDouble(x);
+                            SumSpatial[k][1] += AssignmentProbability[CurrentPixelIndex][k] * Convert.ToDouble(y);
+                            SumIntensity[k] += AssignmentProbability[CurrentPixelIndex][k] * Convert.ToDouble(FrameIntensity[CurrentFrameOffset + CurrentPixelIndex]);
+                        }
+                    }
+                }
+                GMMComponent[k].SpatialMean[0] = SumSpatial[k][0] / SumProbability[k];
+                GMMComponent[k].SpatialMean[1] = SumSpatial[k][1] / SumProbability[k];
+
+                TotalSumAssignmentProbability += SumProbability[k];
+            }
+            for (int k = 0; k < BackModelNum; k++)
+            {
+                // Compute the Variance
+                SumSpatialVariance[k] = new Matrix(2, 2);
+                SumSpatialVariance[k][0, 0] = SumSpatialVariance[k][0, 1] = SumSpatialVariance[k][1, 0] = SumSpatialVariance[k][1, 1] = 0.0;
+                for (int y = 0; y < YNum; y++)
+                {
+                    for (int x = 0; x < XNum; x++)
+                    {
+                        int CurrentPixelIndex = y * XNum + x;
+                        if (FrameMask[CurrentFrameOffset + CurrentPixelIndex] == Constants.LABEL_BACKGROUND)
+                        {
+                            Vector SpatialDifference = new Vector(2);
+                            SpatialDifference[0] = Convert.ToDouble(x) - GMMComponent[k].SpatialMean[0];
+                            SpatialDifference[1] = Convert.ToDouble(y) - GMMComponent[k].SpatialMean[1];
+                            double IntensityDifference = Convert.ToDouble(FrameIntensity[CurrentFrameOffset + CurrentPixelIndex]) - GMMComponent[k].IntensityMean;
+                            SumSpatialVariance[k][0, 0] += AssignmentProbability[CurrentPixelIndex][k] * SpatialDifference[0] * SpatialDifference[0];
+                            SumSpatialVariance[k][0, 1] += AssignmentProbability[CurrentPixelIndex][k] * SpatialDifference[0] * SpatialDifference[1];
+                            SumSpatialVariance[k][1, 0] += AssignmentProbability[CurrentPixelIndex][k] * SpatialDifference[1] * SpatialDifference[0];
+                            SumSpatialVariance[k][1, 1] += AssignmentProbability[CurrentPixelIndex][k] * SpatialDifference[1] * SpatialDifference[1];
+                            SumIntensityVariance[k] += AssignmentProbability[CurrentPixelIndex][k] * IntensityDifference * IntensityDifference;
+                        }
+                    }
+                }
+                GMMComponent[k].SpatialCoVar[0, 0] = SumSpatialVariance[k][0, 0] / SumProbability[k];
+                GMMComponent[k].SpatialCoVar[0, 1] = SumSpatialVariance[k][0, 1] / SumProbability[k];
+                GMMComponent[k].SpatialCoVar[1, 0] = SumSpatialVariance[k][1, 0] / SumProbability[k];
+                GMMComponent[k].SpatialCoVar[1, 1] = SumSpatialVariance[k][1, 1] / SumProbability[k];
+                GMMComponent[k].IntensityVar = SumIntensityVariance[k] / SumProbability[k];
+
+                // Compute the Weight
+                GMMComponent[k].Weight = SumProbability[k] / TotalSumAssignmentProbability;
+            }
+
+            // For foreground GMM model
+            TotalSumAssignmentProbability = 0.0;
+            for (int k = BackModelNum; k < TotalModelNum; k++)
+            {
+                // Compute the Mean 
+                SumSpatial[k] = new Vector(2);
+                SumSpatial[k][0] = SumSpatial[k][1] = 0.0;
+                for (int y = 0; y < YNum; y++)
+                {
+                    for (int x = 0; x < XNum; x++)
+                    {
+                        int CurrentPixelIndex = y * XNum + x;
+                        if (FrameMask[CurrentFrameOffset + CurrentPixelIndex] == Constants.LABEL_FOREGROUND)
+                        {
+                            SumProbability[k] += AssignmentProbability[CurrentPixelIndex][k];
+                            SumSpatial[k][0] += AssignmentProbability[CurrentPixelIndex][k] * Convert.ToDouble(x);
+                            SumSpatial[k][1] += AssignmentProbability[CurrentPixelIndex][k] * Convert.ToDouble(y);
+                            SumIntensity[k] += AssignmentProbability[CurrentPixelIndex][k] * Convert.ToDouble(FrameIntensity[CurrentFrameOffset + CurrentPixelIndex]);
+                        }
+                    }
+                }
+                GMMComponent[k].SpatialMean[0] = SumSpatial[k][0] / SumProbability[k];
+                GMMComponent[k].SpatialMean[1] = SumSpatial[k][1] / SumProbability[k];
+
+                TotalSumAssignmentProbability += SumProbability[k];
+            }
+            for (int k = BackModelNum; k < TotalModelNum; k++)
+            {
+                // Compute the Variance
+                SumSpatialVariance[k] = new Matrix(2, 2);
+                SumSpatialVariance[k][0, 0] = SumSpatialVariance[k][0, 1] = SumSpatialVariance[k][1, 0] = SumSpatialVariance[k][1, 1] = 0.0;
+                for (int y = 0; y < YNum; y++)
+                {
+                    for (int x = 0; x < XNum; x++)
+                    {
+                        int CurrentPixelIndex = y * XNum + x;
+                        if (FrameMask[CurrentFrameOffset + CurrentPixelIndex] == Constants.LABEL_FOREGROUND)
+                        {
+                            Vector SpatialDifference = new Vector(2);
+                            SpatialDifference[0] = Convert.ToDouble(x) - GMMComponent[k].SpatialMean[0];
+                            SpatialDifference[1] = Convert.ToDouble(y) - GMMComponent[k].SpatialMean[1];
+                            double IntensityDifference = Convert.ToDouble(FrameIntensity[CurrentFrameOffset + CurrentPixelIndex]) - GMMComponent[k].IntensityMean;
+                            SumSpatialVariance[k][0, 0] += AssignmentProbability[CurrentPixelIndex][k] * SpatialDifference[0] * SpatialDifference[0];
+                            SumSpatialVariance[k][0, 1] += AssignmentProbability[CurrentPixelIndex][k] * SpatialDifference[0] * SpatialDifference[1];
+                            SumSpatialVariance[k][1, 0] += AssignmentProbability[CurrentPixelIndex][k] * SpatialDifference[1] * SpatialDifference[0];
+                            SumSpatialVariance[k][1, 1] += AssignmentProbability[CurrentPixelIndex][k] * SpatialDifference[1] * SpatialDifference[1];
+                            SumIntensityVariance[k] += AssignmentProbability[CurrentPixelIndex][k] * IntensityDifference * IntensityDifference;
+                        }
                     }
                 }
                 GMMComponent[k].SpatialCoVar[0, 0] = SumSpatialVariance[k][0, 0] / SumProbability[k];
