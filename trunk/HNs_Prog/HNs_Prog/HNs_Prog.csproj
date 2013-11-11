@@ -207,10 +207,6 @@
       <Project>{26FC15DE-EFDA-403A-8284-1E2A4AE8A9D8}</Project>
       <Name>Iridium</Name>
     </ProjectReference>
-    <ProjectReference Include="..\MRF\MRF.vcxproj">
-      <Project>{CA90C7C9-F5FE-4458-AF2E-ECE6D216D897}</Project>
-      <Name>MRF</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
