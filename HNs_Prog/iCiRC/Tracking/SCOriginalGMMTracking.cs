@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using MathNet.Numerics.LinearAlgebra;
+using ManagedMRF;
 
 namespace iCiRC
 {
@@ -72,7 +73,8 @@ namespace iCiRC
                 MaximizationStepInPreUpdating(f, AssignmentProbability);
 
                 // Segmentation
-                
+                //double[] DataEnergy = BuildDataEvergyArray();
+                //GraphCutWrap seg = new GraphCutWrap(XNum, YNum, , true);
 
                 // Post-undating
                 ExpectationStepInPostUpdating(ref AssignmentProbability);
@@ -80,6 +82,38 @@ namespace iCiRC
             }
 
             return FrameMask;
+        }
+
+        double[] BuildDataEvergyArray(int CurrentFrameIndex)
+        {
+            int TotalModelNum = BackModelNum + ForeModelNum;
+            int FramePixelNum = XNum * YNum;
+            int LabelNum = 2;
+            int CurrentFramePixelOffset = CurrentFrameIndex * FramePixelNum;
+
+            double[] DataCost = new double[FramePixelNum * LabelNum];
+            DataCost.Initialize();
+
+            for (int y = 0; y < YNum; y++)
+            {
+                for (int x = 0; x < XNum; x++)
+                {
+                    int CurrentPixelIndex = y * XNum + x;
+                    double CurrentPixelIntensity = Convert.ToDouble(FrameIntensity[CurrentFramePixelOffset + CurrentPixelIndex]);
+
+                    // Likelihood
+                    double BackLikelihood = 0.0;
+                    double ForeLikelihood = 0.0;
+                    for (int k = 0; k < BackModelNum; k++)
+                        BackLikelihood += GMMComponent[k].Weight * GMMComponent[k].GetGaussianProbability(x, y) * GMMComponent[k].GetGaussianProbability(CurrentPixelIntensity);
+                    for (int k = BackModelNum; k < TotalModelNum; k++)
+                        ForeLikelihood += GMMComponent[k].Weight * GMMComponent[k].GetGaussianProbability(x, y) * GMMComponent[k].GetGaussianProbability(CurrentPixelIntensity);
+
+                    DataCost[CurrentPixelIndex * LabelNum] = BackLikelihood;       
+                    DataCost[CurrentPixelIndex * LabelNum + 1] = ForeLikelihood;   
+                }
+            }
+            return DataCost;
         }
 
         void GMMComponentWeightCalibration(int PreviousFrameIndex)

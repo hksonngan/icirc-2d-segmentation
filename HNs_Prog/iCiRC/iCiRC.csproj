@@ -82,6 +82,10 @@
       <Project>{013BE49F-D662-4061-B4CF-599EF61DC92B}</Project>
       <Name>AlgLib</Name>
     </ProjectReference>
+    <ProjectReference Include="..\ManagedMRF\ManagedMRF.vcxproj">
+      <Project>{E486D03D-0F7A-43EA-8743-5D90A973D7B0}</Project>
+      <Name>ManagedMRF</Name>
+    </ProjectReference>
     <ProjectReference Include="..\MathNet_Iridium\Sources\Library\Iridium.csproj">
       <Project>{26FC15DE-EFDA-403A-8284-1E2A4AE8A9D8}</Project>
       <Name>Iridium</Name>
