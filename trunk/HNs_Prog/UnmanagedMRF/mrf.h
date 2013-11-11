@@ -49,7 +49,7 @@ public:
     typedef CostVal (*DataCostFn)(int pix, Label l); 
 
     // Functional representation for the general cost function type 
-    typedef CostVal (*SmoothCostGeneralFn)(int pix1, int pix2,  Label l1, Label l2); 
+    typedef CostVal (*SmoothCostGeneralFn)(int pix1, int pix2, int label1, int label2); 
 
     // For general smoothness functions, some implementations try to cache all function values in an array
     // for efficiency.  To prevent this, call the following function before calling initialize():
