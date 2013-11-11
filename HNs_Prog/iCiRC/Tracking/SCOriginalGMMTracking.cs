@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using MathNet.Numerics.LinearAlgebra;
-using System.Runtime.InteropServices;
 
 namespace iCiRC
 {
