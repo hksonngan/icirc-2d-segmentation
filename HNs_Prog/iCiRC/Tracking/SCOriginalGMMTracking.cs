@@ -73,6 +73,8 @@ namespace iCiRC
                 MaximizationStepInPreUpdating(f, AssignmentProbability);
 
                 // Segmentation
+                //double[] DataEnergy = BuildDataEvergyArray(f);
+                //EnergyFunctionWrap EnergyCost = new EnergyFunctionWrap(DataCost, SmoothCost);
                 //double[] DataEnergy = BuildDataEvergyArray();
                 //GraphCutWrap seg = new GraphCutWrap(XNum, YNum, , true);
 

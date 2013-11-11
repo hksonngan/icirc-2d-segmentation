@@ -9,7 +9,6 @@ namespace ManagedMRF {
 	public:
 		GraphCutWrap(void);
 		GraphCutWrap(int XNum, int YNum, EnergyFunction *eng, bool IsExpansion);
-
 	private:
 		GCoptimization*	pGC;
 	};
