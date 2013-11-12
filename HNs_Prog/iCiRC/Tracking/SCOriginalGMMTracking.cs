@@ -12,10 +12,6 @@ namespace iCiRC
         int BackModelNum, ForeModelNum;
         SpatialColorGaussianModel[] GMMComponent;
 
-        int XNum, YNum, FrameNum;
-        ushort[] FrameIntensity;
-        byte[] FrameMask;
-
         public SCOriginalGMMTracking()
         {
             BackModelNum = 15;
@@ -68,27 +64,41 @@ namespace iCiRC
                 // Weight calibration (Fore/back seperated GMM -> Global GMM)
                 GMMComponentWeightCalibration(f - 1);
 
-                // Pre-updating
-                ExpectationStepInPreUpdating(ref AssignmentProbability);
-                MaximizationStepInPreUpdating(f, AssignmentProbability);
+                // Pre-updating EM
+                for (int iter = 0; iter < EMIterNum; iter++)
+                {
+                    ExpectationStepInPreUpdating(ref AssignmentProbability);
+                    MaximizationStepInPreUpdating(f, AssignmentProbability);
+                }
 
                 // Segmentation
-                double[] SmoothnessHorizontal = new double[FramePixelNum];
-                double[] SmoothnessVertical = new double[FramePixelNum];
-                SmoothnessHorizontal.Initialize();
-                SmoothnessVertical.Initialize();
-                double[] DataEnergy = BuildDataEnergyArray(f);
-                double[] SmoothnessEnergy = BuildSmoothnessEnergyArray(f, ref SmoothnessHorizontal, ref SmoothnessVertical);
-                EnergyFunctionWrap EnergyCost = new EnergyFunctionWrap(DataEnergy, SmoothnessEnergy, SmoothnessHorizontal, SmoothnessVertical);
-                //double[] DataEnergy = BuildDataEvergyArray();
-                //GraphCutWrap seg = new GraphCutWrap(XNum, YNum, , true);
+                SegmentationUsingGraphCut(f);
 
-                // Post-undating
-                ExpectationStepInPostUpdating(ref AssignmentProbability);
-                MaximizationStepInPostUpdating(f, AssignmentProbability);
+                // Post-undating EM
+                for (int iter = 0; iter < EMIterNum; iter++)
+                {
+                    ExpectationStepInPostUpdating(ref AssignmentProbability);
+                    MaximizationStepInPostUpdating(f, AssignmentProbability);
+                }
             }
 
             return FrameMask;
+        }
+
+        unsafe void SegmentationUsingGraphCut(int CurrentFrameIndex)
+        {
+            int FramePixelNum = XNum * YNum;
+            double[] SmoothnessHorizontal = new double[FramePixelNum];
+            double[] SmoothnessVertical = new double[FramePixelNum];
+            SmoothnessHorizontal.Initialize();
+            SmoothnessVertical.Initialize();
+            double[] DataEnergy = BuildDataEnergyArray(CurrentFrameIndex);
+            double[] SmoothnessEnergy = BuildSmoothnessEnergyArray(CurrentFrameIndex, ref SmoothnessHorizontal, ref SmoothnessVertical);
+
+            fixed (double* BufData = DataEnergy, BufSmoothness = SmoothnessEnergy, BufHSmoothness = SmoothnessHorizontal, BufVSmoothness = SmoothnessVertical)
+            {
+                EnergyFunctionWrap EnergyCost = new EnergyFunctionWrap(BufData, BufSmoothness, BufHSmoothness, BufVSmoothness);
+            }
         }
 
         double[] BuildDataEnergyArray(int CurrentFrameIndex)

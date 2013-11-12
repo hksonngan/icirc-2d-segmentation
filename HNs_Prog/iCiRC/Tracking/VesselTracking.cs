@@ -7,6 +7,10 @@ namespace iCiRC
 {
     public class VesselTracking
     {
+        protected int XNum, YNum, FrameNum;
+        protected ushort[] FrameIntensity;
+        protected byte[] FrameMask;
+
         public VesselTracking()
         {
         }
