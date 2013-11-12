@@ -56,6 +56,9 @@ namespace iCiRC
             FrameMask = new byte[TotalPixelNum];
             FrameMask.Initialize();
 
+            ProgressWindow winProgress = new ProgressWindow("Volume Importing", 0, FrameNum);
+            winProgress.Show();
+
             // For the first frame (Post-updating)
             int TotalModelNum = BackModelNum + ForeModelNum;
             double[][] AssignmentProbability = InitialExpectationStep();
@@ -66,6 +69,7 @@ namespace iCiRC
                 ExpectationStepInPostUpdating(ref AssignmentProbability);
                 MaximizationStepInPostUpdating(0, AssignmentProbability);
             }
+            winProgress.Increment(1);
 
             // For each frame 
             for (int f = 1; f < FrameNum; f++)
@@ -89,8 +93,9 @@ namespace iCiRC
                     ExpectationStepInPostUpdating(ref AssignmentProbability);
                     MaximizationStepInPostUpdating(f, AssignmentProbability);
                 }
+                winProgress.Increment(1);
             }
-
+            winProgress.Close();
             return FrameMask;
         }
 
