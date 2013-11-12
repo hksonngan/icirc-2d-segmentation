@@ -28,7 +28,7 @@ namespace iCiRC
             @param paraZNum : the number of frames
             @param paraImageIntensity : the array of image intensity
             @return the array of labeling mask
-            @todo To implement the whole algorithm
+            @todo To implement the part of segmentation using graph-cut
         */
         //-------------------------------------------------------------------------
         public override byte[] RunTracking(int paraXNum, int paraYNum, int paraZNum, ushort[] paraImageIntensity)
@@ -85,6 +85,14 @@ namespace iCiRC
             return FrameMask;
         }
 
+        //---------------------------------------------------------------------------
+        /** @brief Segmentation of the each frame using graph-cut algorithm
+            @author Hyunna Lee
+            @date 2013.11.12
+            @param CurrentFrameIndex : the index of the current frame
+            @todo To implement the graph-cut algorithm using ManagedMRF classes
+        */
+        //-------------------------------------------------------------------------
         unsafe void SegmentationUsingGraphCut(int CurrentFrameIndex)
         {
             int FramePixelNum = XNum * YNum;
@@ -172,6 +180,13 @@ namespace iCiRC
             return SmoothnessCost;
         }
 
+        //---------------------------------------------------------------------------
+        /** @brief Calibration of the Gaussian component weights based on the prior probability of the class
+            @author Hyunna Lee
+            @date 2013.11.08
+            @param PreviousFrameIndex : the index of the previous frame
+        */
+        //-------------------------------------------------------------------------
         void GMMComponentWeightCalibration(int PreviousFrameIndex)
         {
             int FramePixelNum = XNum * YNum;
@@ -192,6 +207,13 @@ namespace iCiRC
                 GMMComponent[k].Weight *= ForegroundPriorProbability;
         }
 
+        //---------------------------------------------------------------------------
+        /** @brief For the first frame, thresholding segmentation and assignment of the posterior probability  
+            @author Hyunna Lee
+            @date 2013.11.08
+            @return uniformly assigned posterior probability 
+        */
+        //-------------------------------------------------------------------------
         double[][] InitialExpectationStep()
         {
             int TotalModelNum = BackModelNum + ForeModelNum;
@@ -225,6 +247,14 @@ namespace iCiRC
             return AssignmentProbability;
         }
 
+        //---------------------------------------------------------------------------
+        /** @brief For each frame, E-step of EM algorithm during Pre-updating  
+            @author Hyunna Lee
+            @date 2013.11.08
+            @para AssignmentProbability : posterior probability for each pixel
+            @return uniformly assigned 
+        */
+        //-------------------------------------------------------------------------
         void ExpectationStepInPreUpdating(ref double[][] AssignmentProbability)
         {
             int TotalModelNum = BackModelNum + ForeModelNum;
@@ -253,6 +283,14 @@ namespace iCiRC
             }
         }
 
+        //---------------------------------------------------------------------------
+        /** @brief For each frame, E-step of EM algorithm during Post-updating  
+            @author Hyunna Lee
+            @date 2013.11.08
+            @para AssignmentProbability : posterior probability for each pixel
+            @return uniformly assigned 
+        */
+        //-------------------------------------------------------------------------
         void ExpectationStepInPostUpdating(ref double[][] AssignmentProbability)
         {
             int TotalModelNum = BackModelNum + ForeModelNum;
@@ -299,6 +337,15 @@ namespace iCiRC
             }
         }
 
+        //---------------------------------------------------------------------------
+        /** @brief For each frame, M-step of EM algorithm during Pre-updating  
+            @author Hyunna Lee
+            @date 2013.11.08
+            @para CurrentFrameIndex : the index of the current frame
+            @para AssignmentProbability : posterior probability for each pixel
+            @return uniformly assigned 
+        */
+        //-------------------------------------------------------------------------
         private void MaximizationStepInPreUpdating(int CurrentFrameIndex, double[][] AssignmentProbability)
         {
             int FramePixelNum = XNum * YNum;
@@ -368,6 +415,15 @@ namespace iCiRC
             }
         }
 
+        //---------------------------------------------------------------------------
+        /** @brief For each frame, M-step of EM algorithm during Post-updating  
+            @author Hyunna Lee
+            @date 2013.11.08
+            @para CurrentFrameIndex : the index of the current frame
+            @para AssignmentProbability : posterior probability for each pixel
+            @return uniformly assigned 
+        */
+        //-------------------------------------------------------------------------
         private void MaximizationStepInPostUpdating(int CurrentFrameIndex, double[][] AssignmentProbability)
         {
             int FramePixelNum = XNum * YNum;
