@@ -1,22 +1,24 @@
 #include "StdAfx.h"
 #include "GraphCutWrap.h"
+#include "GCoptimization.h"
 
 namespace ManagedMRF {
 
-	GraphCutWrap::GraphCutWrap(void)
+	GraphCutWrap::GraphCutWrap(int XNum, int YNum, double DataEnergy[], double SmoothnessLabel[], 
+			double SmoothnessHorizontal[], double SmoothnessVertical[], bool IsSwap)
 	{
-		pGC = NULL;
+		DataCost* data         = new DataCost(DataEnergy);
+		SmoothnessCost* smooth = new SmoothnessCost(SmoothnessLabel, SmoothnessHorizontal, SmoothnessVertical);
+		EnergyFunction* pEnergyFunc = new EnergyFunction(data, smooth);
+		if (IsSwap)
+			pGC = new Swap(XNum, YNum, 2, pEnergyFunc);
+		else
+			pGC = new Expansion(XNum, YNum, 2, pEnergyFunc);
 	}
 
-	GraphCutWrap::GraphCutWrap(int XNum, int YNum, EnergyFunction *eng, bool IsSwap)
+	void GraphCutWrap::OptimizeOneIteration()
 	{
-		if (IsSwap)
-		{
-			pGC = new Swap(XNum, YNum, 2, eng);
-		}
-		else
-		{
-			pGC = new Expansion(XNum, YNum, 2, eng);
-		}
+		float TimeTemp;
+		pGC->optimize(1, TimeTemp);
 	}
 }

@@ -7,6 +7,13 @@ using ManagedMRF;
 
 namespace iCiRC
 {
+    //---------------------------------------------------------------------------
+    /** @class SCOriginalGMMTracking
+        @author Hyunna Lee
+        @date 2013.11.12
+        @brief Spatial-color GMM tracking
+    */
+    //-------------------------------------------------------------------------
     public class SCOriginalGMMTracking : VesselTracking
     { 
         int BackModelNum, ForeModelNum;
@@ -95,7 +102,10 @@ namespace iCiRC
         //-------------------------------------------------------------------------
         unsafe void SegmentationUsingGraphCut(int CurrentFrameIndex)
         {
+            const int GCIterNum = 10;
             int FramePixelNum = XNum * YNum;
+            int CurrentFramePixelOffset = CurrentFrameIndex * FramePixelNum;
+
             double[] SmoothnessHorizontal = new double[FramePixelNum];
             double[] SmoothnessVertical = new double[FramePixelNum];
             SmoothnessHorizontal.Initialize();
@@ -105,7 +115,24 @@ namespace iCiRC
 
             fixed (double* BufData = DataEnergy, BufSmoothness = SmoothnessEnergy, BufHSmoothness = SmoothnessHorizontal, BufVSmoothness = SmoothnessVertical)
             {
-                EnergyFunctionWrap EnergyCost = new EnergyFunctionWrap(BufData, BufSmoothness, BufHSmoothness, BufVSmoothness);
+                GraphCutWrap GraphCut = new GraphCutWrap(XNum, YNum, BufData, BufSmoothness, BufHSmoothness, BufVSmoothness, true);
+                GraphCut.Initialize();
+                GraphCut.ClearAnswer();
+
+                double Energy = GraphCut.GetTotalEnergy();
+                for (int iter = 0; iter < GCIterNum; iter++)
+                {
+                    GraphCut.OptimizeOneIteration();
+                    Energy = GraphCut.GetTotalEnergy();
+                }
+
+                for (int i = 0; i < FramePixelNum; i++)
+                {
+                    if (GraphCut.GetLabel(i) == 0)
+                        FrameMask[CurrentFramePixelOffset + i] = Constants.LABEL_BACKGROUND;
+                    else
+                        FrameMask[CurrentFramePixelOffset + i] = Constants.LABEL_FOREGROUND;
+                }
             }
         }
 
