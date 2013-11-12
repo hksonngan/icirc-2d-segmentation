@@ -102,7 +102,7 @@ namespace iCiRC
         //-------------------------------------------------------------------------
         unsafe void SegmentationUsingGraphCut(int CurrentFrameIndex)
         {
-            const int GCIterNum = 10;
+            const int GCIterNum = 5;
             int FramePixelNum = XNum * YNum;
             int CurrentFramePixelOffset = CurrentFrameIndex * FramePixelNum;
 
