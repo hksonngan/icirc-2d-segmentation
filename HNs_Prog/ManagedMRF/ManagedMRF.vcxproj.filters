@@ -21,13 +21,7 @@
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MRFWrap.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="GraphCutWrap.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="EnergyFunctionWrap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -38,13 +32,7 @@
     <ClCompile Include="Stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MRFWarp.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="GraphCutWrap.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="EnergyFunctionWrap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
