@@ -24,6 +24,8 @@ namespace iCiRC
             BackModelNum = 15;
             ForeModelNum = 15;
             GMMComponent = new SpatialColorGaussianModel[BackModelNum + ForeModelNum];
+            for (int i = 0; i < BackModelNum + ForeModelNum; i++)
+                GMMComponent[i] = new SpatialColorGaussianModel();
         }
 
         //---------------------------------------------------------------------------
@@ -58,7 +60,7 @@ namespace iCiRC
             int TotalModelNum = BackModelNum + ForeModelNum;
             double[][] AssignmentProbability = InitialExpectationStep();
             MaximizationStepInPostUpdating(0, AssignmentProbability);
-            const int EMIterNum = 30;
+            const int EMIterNum = 5;
             for (int iter = 1; iter < EMIterNum; iter++)
             {
                 ExpectationStepInPostUpdating(ref AssignmentProbability);
