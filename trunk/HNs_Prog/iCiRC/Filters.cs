@@ -17,6 +17,16 @@ namespace iCiRC
             FilterSize = null;
         }
 
+        public void GenerateAverageFilter2D(int Size)
+        {
+            Filter = new double[Size * Size];
+            Filter.Initialize();
+            FilterSize = new Point3D(Size, Size, 1);
+
+            for (int i = 0; i < Size * Size; i++)
+                Filter[i] = 1.0 / Convert.ToDouble(Size * Size);
+        }
+
         public void GenerateCentralDifferenceGradientFilter2D(int Dimension)
         {
             const int Size = 3;
@@ -36,9 +46,6 @@ namespace iCiRC
             }
         }
 
-        //
-        // TO DO...
-        //
         public void GenerateCentralDifferenceHessianFilter2D(int Dimension_1, int Dimension_2)
         {
             const int Size = 3;
@@ -166,6 +173,34 @@ namespace iCiRC
                     PixelIndex = (CurrentPixelY + y) * XNum + (CurrentPixelX + x);
 
                     NewVoxelDensity += Convert.ToDouble(ImageIntensity[PixelIndex]) * Filter[FilterIndex];
+                }
+            }
+
+            return NewVoxelDensity;
+        }
+
+        public double Run2D(int XNum, int YNum, double[] ImageIntensity, int CurrentPixelIndex)
+        {
+            if (ImageIntensity == null || Filter == null)
+                return 0.0;
+
+            int CurrentPixelX = CurrentPixelIndex % XNum;
+            int CurrentPixelY = CurrentPixelIndex / XNum;
+            double NewVoxelDensity = 0.0;
+            int FilterIndex, PixelIndex;
+
+            for (int y = -FilterSize.y / 2; y <= FilterSize.y / 2; y++)
+            {
+                if (CurrentPixelY + y < 0 || CurrentPixelY + y > YNum - 1)
+                    continue;
+                for (int x = -FilterSize.x / 2; x <= FilterSize.x / 2; x++)
+                {
+                    if (CurrentPixelX + x < 0 || CurrentPixelX + x > XNum - 1)
+                        continue;
+                    FilterIndex = (y + FilterSize.y / 2) * FilterSize.x + (x + FilterSize.x / 2);
+                    PixelIndex = (CurrentPixelY + y) * XNum + (CurrentPixelX + x);
+
+                    NewVoxelDensity += ImageIntensity[PixelIndex] * Filter[FilterIndex];
                 }
             }
 
