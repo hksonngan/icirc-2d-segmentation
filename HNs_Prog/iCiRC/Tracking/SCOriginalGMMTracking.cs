@@ -56,7 +56,7 @@ namespace iCiRC
             FrameMask = new byte[TotalPixelNum];
             FrameMask.Initialize();
 
-            ProgressWindow winProgress = new ProgressWindow("Volume Importing", 0, FrameNum);
+            ProgressWindow winProgress = new ProgressWindow("Vessel tracking...", 0, FrameNum);
             winProgress.Show();
 
             // For the first frame (Post-updating)
@@ -84,11 +84,11 @@ namespace iCiRC
                     MaximizationStepInPreUpdating(f, PosteriorProbability);
                 }
 
-                // Segmentation
-                SegmentationUsingGraphCut(f);
-
                 // Weight normalization (Global GMM -> Fore/back seperated GMM)
                 WeightNormalization();
+
+                // Segmentation
+                SegmentationUsingGraphCut(f);
 
                 // Post-undating EM
                 for (int iter = 0; iter < EMIterNum; iter++)
@@ -148,9 +148,9 @@ namespace iCiRC
 
         double[] BuildDataEnergyArray(int CurrentFrameIndex)
         {
+            const int LabelNum = 2;
             int TotalModelNum = BackModelNum + ForeModelNum;
             int FramePixelNum = XNum * YNum;
-            int LabelNum = 2;
             int CurrentFramePixelOffset = CurrentFrameIndex * FramePixelNum;
 
             double[] DataCost = new double[FramePixelNum * LabelNum];
@@ -162,17 +162,20 @@ namespace iCiRC
                 {
                     int CurrentPixelIndex = y * XNum + x;
                     double CurrentPixelIntensity = Convert.ToDouble(FrameIntensity[CurrentFramePixelOffset + CurrentPixelIndex]);
-
                     // Likelihood
-                    double BackLikelihood = 0.0;
+                    DataCost[CurrentPixelIndex * LabelNum] = 0.0;
+                    DataCost[CurrentPixelIndex * LabelNum + 1] = 0.0;
                     double ForeLikelihood = 0.0;
                     for (int k = 0; k < BackModelNum; k++)
-                        BackLikelihood += GMMComponent[k].Weight * GMMComponent[k].GetGaussianProbability(x, y) * GMMComponent[k].GetGaussianProbability(CurrentPixelIntensity);
+                    {
+                        double GMMLikelihood = GMMComponent[k].Weight * GMMComponent[k].GetGaussianProbability(x, y) * GMMComponent[k].GetGaussianProbability(CurrentPixelIntensity);
+                        DataCost[CurrentPixelIndex * LabelNum] -= Math.Log10(GMMLikelihood);
+                    }
                     for (int k = BackModelNum; k < TotalModelNum; k++)
-                        ForeLikelihood += GMMComponent[k].Weight * GMMComponent[k].GetGaussianProbability(x, y) * GMMComponent[k].GetGaussianProbability(CurrentPixelIntensity);
-
-                    DataCost[CurrentPixelIndex * LabelNum] = BackLikelihood;       
-                    DataCost[CurrentPixelIndex * LabelNum + 1] = ForeLikelihood;   
+                    {
+                        double GMMLikelihood = GMMComponent[k].Weight * GMMComponent[k].GetGaussianProbability(x, y) * GMMComponent[k].GetGaussianProbability(CurrentPixelIntensity);
+                        DataCost[CurrentPixelIndex * LabelNum + 1] -= Math.Log10(GMMLikelihood);
+                    }
                 }
             }
             return DataCost;
@@ -180,7 +183,7 @@ namespace iCiRC
 
         double[] BuildSmoothnessEnergyArray(int CurrentFrameIndex, ref double[] HSmoothness, ref double[] VSmoothness)
         {
-            const double Sigma = 80.0;
+            const double Sigma = 50.0;
             int TotalModelNum = BackModelNum + ForeModelNum;
             int FramePixelNum = XNum * YNum;
             int LabelNum = 2;
@@ -289,7 +292,7 @@ namespace iCiRC
 
             // Segmentation of the first frame using thresholding
             int FramePixelNum = XNum * YNum;
-            const ushort VesselIntensityThresholdValue = 128;
+            const ushort VesselIntensityThresholdValue = 64;
             for (int i = 0; i < FramePixelNum; i++)
             {
                 if (FrameIntensity[i] < VesselIntensityThresholdValue)
