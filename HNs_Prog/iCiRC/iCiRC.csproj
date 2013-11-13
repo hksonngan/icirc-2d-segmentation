@@ -72,6 +72,8 @@
   <ItemGroup>
     <Compile Include="Constants.cs" />
     <Compile Include="Filters.cs" />
+    <Compile Include="FrameProcessing.cs" />
+    <Compile Include="HomomorphicFilter.cs" />
     <Compile Include="ProgressWindow.cs">
       <SubType>Form</SubType>
     </Compile>
