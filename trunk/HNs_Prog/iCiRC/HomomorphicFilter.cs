@@ -28,10 +28,10 @@ namespace iCiRC
             OutputFrameIntensity = new ushort[FramePixelNum];
             OutputFrameIntensity.Initialize();
 
-            const float rL = 0.3f;
+            const float rL = 0.4f;
             const float rH = 1.2f;
-            const float Sigma = 5.0f;
-            const float Slope = 1.0f;
+            const float Sigma = 10.0f;
+            const float Slope = 5.0f;
 
             // Take log image
             int[,] ImageData = new int[XNum, YNum];
