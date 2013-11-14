@@ -8,8 +8,8 @@ namespace iCiRC
     public class FrameProcessing
     {
         protected int XNum, YNum;
-        protected ushort[] InputFrameIntensity;
-        protected ushort[] OutputFrameIntensity;
+        protected byte[] InputFrameIntensity;
+        protected byte[] OutputFrameIntensity;
         protected byte[] InputFrameMask;
         protected byte[] OutputFrameMask;
 
