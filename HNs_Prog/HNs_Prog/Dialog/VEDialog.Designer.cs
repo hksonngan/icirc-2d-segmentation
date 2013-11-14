@@ -34,6 +34,9 @@
             this.RadioButtonManniesing = new System.Windows.Forms.RadioButton();
             this.RadioButtonKrissian2 = new System.Windows.Forms.RadioButton();
             this.RadioButtonTruc = new System.Windows.Forms.RadioButton();
+            this.GroupBoxPreProcessing = new System.Windows.Forms.GroupBox();
+            this.CheckBoxHomomorphicFiltering = new System.Windows.Forms.CheckBox();
+            this.GroupBoxPreProcessing.SuspendLayout();
             this.SuspendLayout();
             // 
             // ButtonRun
@@ -71,18 +74,6 @@
             this.RadioButtonKrissian1.UseVisualStyleBackColor = true;
             this.RadioButtonKrissian1.CheckedChanged += new System.EventHandler(this.RadioButtonCheckedChanged);
             // 
-            // RadioButtonKrissian2
-            // 
-            this.RadioButtonKrissian2.AutoSize = true;
-            this.RadioButtonKrissian2.Location = new System.Drawing.Point(12, 59);
-            this.RadioButtonKrissian2.Name = "RadioButtonKrissian2";
-            this.RadioButtonKrissian2.Size = new System.Drawing.Size(358, 16);
-            this.RadioButtonKrissian2.TabIndex = 3;
-            this.RadioButtonKrissian2.TabStop = true;
-            this.RadioButtonKrissian2.Text = "Krissian, Flux-based anisotropic diffusion (IEEE TMI, 2002)";
-            this.RadioButtonKrissian2.UseVisualStyleBackColor = true;
-            this.RadioButtonKrissian2.CheckedChanged += new System.EventHandler(this.RadioButtonCheckedChanged);
-            // 
             // RadioButtonManniesing
             // 
             this.RadioButtonManniesing.AutoSize = true;
@@ -94,6 +85,18 @@
             this.RadioButtonManniesing.Text = "Manniesing et al., Vessel enhancing diffusion (MIA, 2006)";
             this.RadioButtonManniesing.UseVisualStyleBackColor = true;
             this.RadioButtonManniesing.CheckedChanged += new System.EventHandler(this.RadioButtonCheckedChanged);
+            // 
+            // RadioButtonKrissian2
+            // 
+            this.RadioButtonKrissian2.AutoSize = true;
+            this.RadioButtonKrissian2.Location = new System.Drawing.Point(12, 59);
+            this.RadioButtonKrissian2.Name = "RadioButtonKrissian2";
+            this.RadioButtonKrissian2.Size = new System.Drawing.Size(358, 16);
+            this.RadioButtonKrissian2.TabIndex = 3;
+            this.RadioButtonKrissian2.TabStop = true;
+            this.RadioButtonKrissian2.Text = "Krissian, Flux-based anisotropic diffusion (IEEE TMI, 2002)";
+            this.RadioButtonKrissian2.UseVisualStyleBackColor = true;
+            this.RadioButtonKrissian2.CheckedChanged += new System.EventHandler(this.RadioButtonCheckedChanged);
             // 
             // RadioButtonTruc
             // 
@@ -107,11 +110,35 @@
             this.RadioButtonTruc.UseVisualStyleBackColor = true;
             this.RadioButtonTruc.CheckedChanged += new System.EventHandler(this.RadioButtonCheckedChanged);
             // 
+            // GroupBoxPreProcessing
+            // 
+            this.GroupBoxPreProcessing.Controls.Add(this.CheckBoxHomomorphicFiltering);
+            this.GroupBoxPreProcessing.Location = new System.Drawing.Point(13, 137);
+            this.GroupBoxPreProcessing.Name = "GroupBoxPreProcessing";
+            this.GroupBoxPreProcessing.Size = new System.Drawing.Size(254, 74);
+            this.GroupBoxPreProcessing.TabIndex = 6;
+            this.GroupBoxPreProcessing.TabStop = false;
+            this.GroupBoxPreProcessing.Text = "Pre-processing";
+            // 
+            // CheckBoxHomomorphicFiltering
+            // 
+            this.CheckBoxHomomorphicFiltering.AutoSize = true;
+            this.CheckBoxHomomorphicFiltering.Checked = true;
+            this.CheckBoxHomomorphicFiltering.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.CheckBoxHomomorphicFiltering.Location = new System.Drawing.Point(12, 21);
+            this.CheckBoxHomomorphicFiltering.Name = "CheckBoxHomomorphicFiltering";
+            this.CheckBoxHomomorphicFiltering.Size = new System.Drawing.Size(147, 16);
+            this.CheckBoxHomomorphicFiltering.TabIndex = 0;
+            this.CheckBoxHomomorphicFiltering.Text = "Homomorphic filtering";
+            this.CheckBoxHomomorphicFiltering.UseVisualStyleBackColor = true;
+            this.CheckBoxHomomorphicFiltering.CheckedChanged += new System.EventHandler(this.CheckBoxCheckedChanged);
+            // 
             // VEDialog
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(554, 262);
+            this.Controls.Add(this.GroupBoxPreProcessing);
             this.Controls.Add(this.RadioButtonTruc);
             this.Controls.Add(this.RadioButtonKrissian2);
             this.Controls.Add(this.RadioButtonManniesing);
@@ -121,6 +148,8 @@
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.Name = "VEDialog";
             this.Text = "Vessel Enhenacement Methods";
+            this.GroupBoxPreProcessing.ResumeLayout(false);
+            this.GroupBoxPreProcessing.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -134,5 +163,7 @@
         private System.Windows.Forms.RadioButton RadioButtonManniesing;
         private System.Windows.Forms.RadioButton RadioButtonKrissian2;
         private System.Windows.Forms.RadioButton RadioButtonTruc;
+        private System.Windows.Forms.GroupBox GroupBoxPreProcessing;
+        private System.Windows.Forms.CheckBox CheckBoxHomomorphicFiltering;
     }
 }

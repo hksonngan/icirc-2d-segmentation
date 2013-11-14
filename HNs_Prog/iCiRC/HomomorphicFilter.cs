@@ -22,16 +22,16 @@ namespace iCiRC
             HFilterType = HighpassFilterType.Average;
         }
 
-        public ushort[] RunFiltering(ushort[] Intensity)
+        public byte[] RunFiltering(byte[] Intensity)
         {
             int FramePixelNum = XNum * YNum;
-            OutputFrameIntensity = new ushort[FramePixelNum];
+            OutputFrameIntensity = new byte[FramePixelNum];
             OutputFrameIntensity.Initialize();
 
-            const float rL = 0.4f;
+            const float rL = 0.6f;
             const float rH = 1.2f;
-            const float Sigma = 10.0f;
-            const float Slope = 5.0f;
+            const float Sigma = 64.0f;
+            const float Slope = 0.5f;
 
             // Take log image
             int[,] ImageData = new int[XNum, YNum];
@@ -56,37 +56,9 @@ namespace iCiRC
             for (int y = 0; y < YNum; y++)
             {
                 for (int x = 0; x < XNum; x++)
-                    OutputFrameIntensity[y * XNum + x] = Convert.ToUInt16(FFTInvObject.GreyImage[x, y]);
+                    OutputFrameIntensity[y * XNum + x] = Convert.ToByte(FFTInvObject.GreyImage[x, y]);
             }
 
-            /*
-
-            int FramePixelNum = XNum * YNum;
-            InputFrameIntensity = Intensity;
-            OutputFrameIntensity = new ushort[FramePixelNum];
-            OutputFrameIntensity.Initialize();
-
-            // Take log
-            double[] LogIntensity = new double[FramePixelNum];
-            LogIntensity.Initialize();
-            for (int i = 0; i < FramePixelNum; i++)
-                LogIntensity[i] = Math.Log(Convert.ToDouble(Intensity[i]) / 255.0 + 1.0);
-
-            // High-pass filtering
-            double[] FilteredLogIntensity = new double[FramePixelNum];
-            FilteredLogIntensity.Initialize();
-            Filters AverageFilter = new Filters();
-            if (HFilterType == HighpassFilterType.Average)
-                AverageFilter.GenerateAverageFilter2D(3);
-            else if (HFilterType == HighpassFilterType.Gaussian)
-                AverageFilter.GenerateGaussianFilter2D(3.0, 15);
-            for (int i = 0; i < FramePixelNum; i++)
-                FilteredLogIntensity[i] = AverageFilter.Run2D(XNum, YNum, LogIntensity, i);
-
-            // Take exp
-            for (int i = 0; i < FramePixelNum; i++)
-                OutputFrameIntensity[i] = Convert.ToUInt16((Math.Exp(FilteredLogIntensity[i]) - 1.0) * 255.0);
-            */
             return OutputFrameIntensity;
         }
 

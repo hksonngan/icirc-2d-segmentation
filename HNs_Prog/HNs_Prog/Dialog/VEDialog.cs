@@ -13,11 +13,13 @@ namespace HNs_Prog.Dialog
     {
         public enum VEMethod { Frangi, KrissianModel, KrissianFlux, ManniesingVED, TrucDFB };
         public VEMethod MethodIndex;
+        public bool CheckedHomohorphicFiltering;
 
         public VEDialog()
         {
             InitializeComponent();
             MethodIndex = VEMethod.Frangi;
+            CheckedHomohorphicFiltering = true;
         }
 
         private void ButtonRunClick(object sender, EventArgs e)
@@ -37,6 +39,11 @@ namespace HNs_Prog.Dialog
                 MethodIndex = VEMethod.ManniesingVED;
             else if (RadioButtonTruc.Checked)
                 MethodIndex = VEMethod.TrucDFB;
+        }
+
+        private void CheckBoxCheckedChanged(object sender, EventArgs e)
+        {
+            CheckedHomohorphicFiltering = CheckBoxHomomorphicFiltering.Checked;
         }
     }
 }

@@ -293,8 +293,8 @@ namespace HNs_Prog
                         PixelArray[i] = (uint)Color.Red.ToArgb();
                     else if (VolumeData.VolumeMask[CurrentSliceOffset + i] == 0x05)
                         PixelArray[i] = (uint)Color.Yellow.ToArgb();
-                    //else if (VolumeData.VolumeMask[CurrentSliceOffset + i] == 0xff)
-                    //    PixelArray[i] = (uint)Color.Yellow.ToArgb();
+                    else if (VolumeData.VolumeMask[CurrentSliceOffset + i] == 0xff)
+                        PixelArray[i] = (uint)Color.Yellow.ToArgb();
                 }
             }
             TextureOutput.UnlockRectangle(0);

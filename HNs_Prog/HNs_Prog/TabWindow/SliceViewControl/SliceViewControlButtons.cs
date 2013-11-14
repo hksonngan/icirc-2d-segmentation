@@ -23,6 +23,17 @@ namespace HNs_Prog
             byte[] CurrentXraySlice = new byte[VolumeData.XNum * VolumeData.YNum];
             for (int i = 0; i < VolumeData.XNum * VolumeData.YNum; i++)
                 CurrentXraySlice[i] = Convert.ToByte(VolumeData.VolumeDensity[CurrentSliceIndex * VolumeData.XNum * VolumeData.YNum + i]);
+
+            if (VesselEnhancementDialog.CheckedHomohorphicFiltering)
+            {
+                // Homophrphic filtering
+                HomomorphicFilter Processor = new HomomorphicFilter(VolumeData.XNum, VolumeData.YNum);
+                byte[] FilteredCurrentXraySlice = Processor.RunFiltering(CurrentXraySlice);
+
+                for (int i = 0; i < VolumeData.XNum * VolumeData.YNum; i++)
+                    CurrentXraySlice[i] = FilteredCurrentXraySlice[i];
+            }
+
             double[] ResultMap = new double[VolumeData.XNum * VolumeData.YNum];
             ResultMap.Initialize();
             ResponseMap map = new ResponseMap();
@@ -80,21 +91,6 @@ namespace HNs_Prog
 
         private void ButtonFrameProcessingClick(object sender, EventArgs e)
         {
-            // Homophrphic filtering
-            ushort[] CurrentXraySlice = new ushort[VolumeData.XNum * VolumeData.YNum];
-            for (int i = 0; i < VolumeData.XNum * VolumeData.YNum; i++)
-                CurrentXraySlice[i] = VolumeData.VolumeDensity[CurrentSliceIndex * VolumeData.XNum * VolumeData.YNum + i];
-
-            HomomorphicFilter Processor = new HomomorphicFilter(VolumeData.XNum, VolumeData.YNum);
-            Processor.HFilterType = HomomorphicFilter.HighpassFilterType.Gaussian;
-            ushort[] FilteredCurrentXraySlice = Processor.RunFiltering(CurrentXraySlice);
-
-            byte[] OutputXraySlice = new byte[VolumeData.XNum * VolumeData.YNum];
-            for (int i = 0; i < VolumeData.XNum * VolumeData.YNum; i++)
-                OutputXraySlice[i] = Convert.ToByte(FilteredCurrentXraySlice[i]);
-
-            UpdateTextureOutput(OutputXraySlice);
-            this.PanelOutputImage.Invalidate();
         }
 
         private void ButtonDICOMSaveClick(object sender, EventArgs e)
