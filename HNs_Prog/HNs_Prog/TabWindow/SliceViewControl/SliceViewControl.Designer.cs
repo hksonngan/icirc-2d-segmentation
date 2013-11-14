@@ -53,6 +53,7 @@
             this.ButtonVesselResponse = new System.Windows.Forms.Button();
             this.ButtonImageSequenceSave = new System.Windows.Forms.Button();
             this.ButtonGMMTracking = new System.Windows.Forms.Button();
+            this.ButtonFrameProcessing = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.TrackBarSliceImage)).BeginInit();
             this.GroupBoxSliceHistogram.SuspendLayout();
             this.GroupBoxSliceOutput.SuspendLayout();
@@ -271,16 +272,6 @@
             this.ButtonVesselResponse.UseVisualStyleBackColor = true;
             this.ButtonVesselResponse.Click += new System.EventHandler(this.ButtonVesselResponseClick);
             // 
-            // ButtonGMMTracking
-            // 
-            this.ButtonGMMTracking.Location = new System.Drawing.Point(605, 70);
-            this.ButtonGMMTracking.Name = "ButtonGMMTracking";
-            this.ButtonGMMTracking.Size = new System.Drawing.Size(178, 23);
-            this.ButtonGMMTracking.TabIndex = 25;
-            this.ButtonGMMTracking.Text = "GMM-based Tracking";
-            this.ButtonGMMTracking.UseVisualStyleBackColor = true;
-            this.ButtonGMMTracking.Click += new System.EventHandler(this.ButtonGMMTrackingClick);
-            // 
             // ButtonImageSequenceSave
             // 
             this.ButtonImageSequenceSave.Location = new System.Drawing.Point(603, 470);
@@ -291,11 +282,32 @@
             this.ButtonImageSequenceSave.UseVisualStyleBackColor = true;
             this.ButtonImageSequenceSave.Click += new System.EventHandler(this.ButtonImageSequenceSaveClick);
             // 
+            // ButtonGMMTracking
+            // 
+            this.ButtonGMMTracking.Location = new System.Drawing.Point(605, 70);
+            this.ButtonGMMTracking.Name = "ButtonGMMTracking";
+            this.ButtonGMMTracking.Size = new System.Drawing.Size(178, 23);
+            this.ButtonGMMTracking.TabIndex = 25;
+            this.ButtonGMMTracking.Text = "GMM-based Tracking";
+            this.ButtonGMMTracking.UseVisualStyleBackColor = true;
+            this.ButtonGMMTracking.Click += new System.EventHandler(this.ButtonGMMTrackingClick);
+            // 
+            // ButtonFrameProcessing
+            // 
+            this.ButtonFrameProcessing.Location = new System.Drawing.Point(605, 203);
+            this.ButtonFrameProcessing.Name = "ButtonFrameProcessing";
+            this.ButtonFrameProcessing.Size = new System.Drawing.Size(178, 23);
+            this.ButtonFrameProcessing.TabIndex = 26;
+            this.ButtonFrameProcessing.Text = "Frame Processing";
+            this.ButtonFrameProcessing.UseVisualStyleBackColor = true;
+            this.ButtonFrameProcessing.Click += new System.EventHandler(this.ButtonFrameProcessingClick);
+            // 
             // SliceViewControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
+            this.Controls.Add(this.ButtonFrameProcessing);
             this.Controls.Add(this.ButtonGMMTracking);
             this.Controls.Add(this.ButtonImageSequenceSave);
             this.Controls.Add(this.ButtonRawFileSave);
@@ -351,5 +363,6 @@
         private System.Windows.Forms.Button ButtonVesselResponse;
         private System.Windows.Forms.Button ButtonImageSequenceSave;
         private System.Windows.Forms.Button ButtonGMMTracking;
+        private System.Windows.Forms.Button ButtonFrameProcessing;
     }
 }

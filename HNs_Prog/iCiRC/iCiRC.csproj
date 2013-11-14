@@ -71,6 +71,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Constants.cs" />
+    <Compile Include="FFT.cs" />
     <Compile Include="Filters.cs" />
     <Compile Include="FrameProcessing.cs" />
     <Compile Include="HomomorphicFilter.cs" />
