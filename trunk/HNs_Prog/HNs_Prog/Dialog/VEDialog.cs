@@ -15,6 +15,7 @@ namespace HNs_Prog.Dialog
         public VEMethod MethodIndex;
         public bool CheckedHomohorphicFiltering;
         public bool CheckedMedianFiltering;
+        public bool CheckedAllFrames;
 
         public VEDialog()
         {
@@ -22,6 +23,7 @@ namespace HNs_Prog.Dialog
             MethodIndex = VEMethod.Frangi;
             CheckedHomohorphicFiltering = true;
             CheckedMedianFiltering = true;
+            CheckedAllFrames = false;
         }
 
         private void ButtonRunClick(object sender, EventArgs e)
@@ -47,6 +49,7 @@ namespace HNs_Prog.Dialog
         {
             CheckedHomohorphicFiltering = CheckBoxHomomorphicFiltering.Checked;
             CheckedMedianFiltering = CheckBoxMedianFiltering.Checked;
+            CheckedAllFrames = CheckBoxAllFrame.Checked;
         }
     }
 }
