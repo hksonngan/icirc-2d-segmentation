@@ -14,12 +14,14 @@ namespace HNs_Prog.Dialog
         public enum VEMethod { Frangi, KrissianModel, KrissianFlux, ManniesingVED, TrucDFB };
         public VEMethod MethodIndex;
         public bool CheckedHomohorphicFiltering;
+        public bool CheckedMedianFiltering;
 
         public VEDialog()
         {
             InitializeComponent();
             MethodIndex = VEMethod.Frangi;
             CheckedHomohorphicFiltering = true;
+            CheckedMedianFiltering = true;
         }
 
         private void ButtonRunClick(object sender, EventArgs e)
@@ -44,6 +46,7 @@ namespace HNs_Prog.Dialog
         private void CheckBoxCheckedChanged(object sender, EventArgs e)
         {
             CheckedHomohorphicFiltering = CheckBoxHomomorphicFiltering.Checked;
+            CheckedMedianFiltering = CheckBoxMedianFiltering.Checked;
         }
     }
 }

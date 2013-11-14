@@ -36,7 +36,10 @@
             this.RadioButtonTruc = new System.Windows.Forms.RadioButton();
             this.GroupBoxPreProcessing = new System.Windows.Forms.GroupBox();
             this.CheckBoxHomomorphicFiltering = new System.Windows.Forms.CheckBox();
+            this.GroupBoxPostProcessing = new System.Windows.Forms.GroupBox();
+            this.CheckBoxMedianFiltering = new System.Windows.Forms.CheckBox();
             this.GroupBoxPreProcessing.SuspendLayout();
+            this.GroupBoxPostProcessing.SuspendLayout();
             this.SuspendLayout();
             // 
             // ButtonRun
@@ -133,11 +136,35 @@
             this.CheckBoxHomomorphicFiltering.UseVisualStyleBackColor = true;
             this.CheckBoxHomomorphicFiltering.CheckedChanged += new System.EventHandler(this.CheckBoxCheckedChanged);
             // 
+            // GroupBoxPostProcessing
+            // 
+            this.GroupBoxPostProcessing.Controls.Add(this.CheckBoxMedianFiltering);
+            this.GroupBoxPostProcessing.Location = new System.Drawing.Point(289, 137);
+            this.GroupBoxPostProcessing.Name = "GroupBoxPostProcessing";
+            this.GroupBoxPostProcessing.Size = new System.Drawing.Size(253, 74);
+            this.GroupBoxPostProcessing.TabIndex = 7;
+            this.GroupBoxPostProcessing.TabStop = false;
+            this.GroupBoxPostProcessing.Text = "Post-processing";
+            // 
+            // CheckBoxMedianFiltering
+            // 
+            this.CheckBoxMedianFiltering.AutoSize = true;
+            this.CheckBoxMedianFiltering.Checked = true;
+            this.CheckBoxMedianFiltering.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.CheckBoxMedianFiltering.Location = new System.Drawing.Point(12, 20);
+            this.CheckBoxMedianFiltering.Name = "CheckBoxMedianFiltering";
+            this.CheckBoxMedianFiltering.Size = new System.Drawing.Size(110, 16);
+            this.CheckBoxMedianFiltering.TabIndex = 0;
+            this.CheckBoxMedianFiltering.Text = "Median filtering";
+            this.CheckBoxMedianFiltering.UseVisualStyleBackColor = true;
+            this.CheckBoxMedianFiltering.CheckedChanged += new System.EventHandler(this.CheckBoxCheckedChanged);
+            // 
             // VEDialog
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(554, 262);
+            this.Controls.Add(this.GroupBoxPostProcessing);
             this.Controls.Add(this.GroupBoxPreProcessing);
             this.Controls.Add(this.RadioButtonTruc);
             this.Controls.Add(this.RadioButtonKrissian2);
@@ -150,6 +177,8 @@
             this.Text = "Vessel Enhenacement Methods";
             this.GroupBoxPreProcessing.ResumeLayout(false);
             this.GroupBoxPreProcessing.PerformLayout();
+            this.GroupBoxPostProcessing.ResumeLayout(false);
+            this.GroupBoxPostProcessing.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -165,5 +194,7 @@
         private System.Windows.Forms.RadioButton RadioButtonTruc;
         private System.Windows.Forms.GroupBox GroupBoxPreProcessing;
         private System.Windows.Forms.CheckBox CheckBoxHomomorphicFiltering;
+        private System.Windows.Forms.GroupBox GroupBoxPostProcessing;
+        private System.Windows.Forms.CheckBox CheckBoxMedianFiltering;
     }
 }
