@@ -68,10 +68,34 @@ namespace HNs_Prog
             // Post-proccesing
             if (VesselEnhancementDialog.CheckedMedianFiltering)
             {
+                // Baukup
+                byte[] ResultLabeling = new byte[VolumeData.XNum * VolumeData.YNum];
+                ResultLabeling = (byte[])CurrentXraySlice.Clone();
+
+                // Thresholding
+                for (int i = 0; i < VolumeData.XNum * VolumeData.YNum; i++)
+                {
+                    if (ResultLabeling[i] > 100)
+                        ResultLabeling[i] = 0xff;
+                    else
+                        ResultLabeling[i] = 0x00;
+                }
+
                 MorphologicalFilter FilteringProcessor = new MorphologicalFilter(VolumeData.XNum, VolumeData.YNum);
-                FilteringProcessor.FType = MorphologicalFilter.FilterType.Median;
-                byte[] FilteredCurrentXraySlice = FilteringProcessor.RunFiltering(CurrentXraySlice);
-                CurrentXraySlice = (byte[])FilteredCurrentXraySlice.Clone();
+                FilteringProcessor.FType = MorphologicalFilter.FilterType.Erosion;
+                byte[] FilteredCurrentXraySlice = FilteringProcessor.RunFiltering(ResultLabeling);
+                ResultLabeling = (byte[])FilteredCurrentXraySlice.Clone();
+                FilteringProcessor.FType = MorphologicalFilter.FilterType.Dilation;
+                FilteredCurrentXraySlice = FilteringProcessor.RunFiltering(ResultLabeling);
+                ResultLabeling = (byte[])FilteredCurrentXraySlice.Clone();
+
+                VolumeData.VolumeMask = new byte[VolumeData.XNum * VolumeData.YNum * VolumeData.ZNum];
+                VolumeData.VolumeMask.Initialize();
+                for (int i = 0; i < VolumeData.XNum * VolumeData.YNum; i++)
+                    VolumeData.VolumeMask[CurrentSliceIndex * VolumeData.XNum * VolumeData.YNum + i] = ResultLabeling[i];
+
+                this.CheckBoxMasking.Enabled = true;
+                this.CheckBoxMasking.Checked = true;
             }
 
             UpdateTextureOutput(CurrentXraySlice);

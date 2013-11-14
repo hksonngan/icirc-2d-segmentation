@@ -38,6 +38,7 @@
             this.CheckBoxHomomorphicFiltering = new System.Windows.Forms.CheckBox();
             this.GroupBoxPostProcessing = new System.Windows.Forms.GroupBox();
             this.CheckBoxMedianFiltering = new System.Windows.Forms.CheckBox();
+            this.CheckBoxAllFrame = new System.Windows.Forms.CheckBox();
             this.GroupBoxPreProcessing.SuspendLayout();
             this.GroupBoxPostProcessing.SuspendLayout();
             this.SuspendLayout();
@@ -113,12 +114,23 @@
             this.RadioButtonTruc.UseVisualStyleBackColor = true;
             this.RadioButtonTruc.CheckedChanged += new System.EventHandler(this.RadioButtonCheckedChanged);
             // 
+            // CheckBoxAllFrame
+            // 
+            this.CheckBoxAllFrame.AutoSize = true;
+            this.CheckBoxAllFrame.Location = new System.Drawing.Point(13, 132);
+            this.CheckBoxAllFrame.Name = "CheckBoxAllFrame";
+            this.CheckBoxAllFrame.Size = new System.Drawing.Size(81, 16);
+            this.CheckBoxAllFrame.TabIndex = 8;
+            this.CheckBoxAllFrame.Text = "All frames";
+            this.CheckBoxAllFrame.UseVisualStyleBackColor = true;
+            this.CheckBoxAllFrame.CheckedChanged += new System.EventHandler(this.CheckBoxCheckedChanged);
+            // 
             // GroupBoxPreProcessing
             // 
             this.GroupBoxPreProcessing.Controls.Add(this.CheckBoxHomomorphicFiltering);
-            this.GroupBoxPreProcessing.Location = new System.Drawing.Point(13, 137);
+            this.GroupBoxPreProcessing.Location = new System.Drawing.Point(13, 163);
             this.GroupBoxPreProcessing.Name = "GroupBoxPreProcessing";
-            this.GroupBoxPreProcessing.Size = new System.Drawing.Size(254, 74);
+            this.GroupBoxPreProcessing.Size = new System.Drawing.Size(255, 50);
             this.GroupBoxPreProcessing.TabIndex = 6;
             this.GroupBoxPreProcessing.TabStop = false;
             this.GroupBoxPreProcessing.Text = "Pre-processing";
@@ -139,9 +151,9 @@
             // GroupBoxPostProcessing
             // 
             this.GroupBoxPostProcessing.Controls.Add(this.CheckBoxMedianFiltering);
-            this.GroupBoxPostProcessing.Location = new System.Drawing.Point(289, 137);
+            this.GroupBoxPostProcessing.Location = new System.Drawing.Point(288, 163);
             this.GroupBoxPostProcessing.Name = "GroupBoxPostProcessing";
-            this.GroupBoxPostProcessing.Size = new System.Drawing.Size(253, 74);
+            this.GroupBoxPostProcessing.Size = new System.Drawing.Size(255, 50);
             this.GroupBoxPostProcessing.TabIndex = 7;
             this.GroupBoxPostProcessing.TabStop = false;
             this.GroupBoxPostProcessing.Text = "Post-processing";
@@ -164,6 +176,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(554, 262);
+            this.Controls.Add(this.CheckBoxAllFrame);
             this.Controls.Add(this.GroupBoxPostProcessing);
             this.Controls.Add(this.GroupBoxPreProcessing);
             this.Controls.Add(this.RadioButtonTruc);
@@ -196,5 +209,6 @@
         private System.Windows.Forms.CheckBox CheckBoxHomomorphicFiltering;
         private System.Windows.Forms.GroupBox GroupBoxPostProcessing;
         private System.Windows.Forms.CheckBox CheckBoxMedianFiltering;
+        private System.Windows.Forms.CheckBox CheckBoxAllFrame;
     }
 }
