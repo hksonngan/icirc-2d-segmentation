@@ -7,23 +7,19 @@ namespace iCiRC
 {
     public class HomomorphicFilter : FrameProcessing
     {
-        public enum HighpassFilterType { Average, Gaussian, Butterworth, Chebychev };
-        public HighpassFilterType HFilterType;
-
         public HomomorphicFilter()
         {
-            HFilterType = HighpassFilterType.Average;
         }
 
         public HomomorphicFilter(int Width, int Height)
         {
             XNum = Width;
             YNum = Height;
-            HFilterType = HighpassFilterType.Average;
         }
 
         public byte[] RunFiltering(byte[] Intensity)
         {
+            InputFrameIntensity = Intensity;
             int FramePixelNum = XNum * YNum;
             OutputFrameIntensity = new byte[FramePixelNum];
             OutputFrameIntensity.Initialize();
@@ -38,7 +34,7 @@ namespace iCiRC
             for (int y = 0; y < YNum; y++)
             {
                 for (int x = 0; x < XNum; x++)
-                    ImageData[x, y] = Convert.ToInt32(Intensity[y * XNum + x]);
+                    ImageData[x, y] = Convert.ToInt32(InputFrameIntensity[y * XNum + x]);
             }
 
             // High-pass filtering

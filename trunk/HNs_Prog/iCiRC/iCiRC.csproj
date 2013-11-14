@@ -75,6 +75,7 @@
     <Compile Include="Filters.cs" />
     <Compile Include="FrameProcessing.cs" />
     <Compile Include="HomomorphicFilter.cs" />
+    <Compile Include="MorphologicalFilter.cs" />
     <Compile Include="ProgressWindow.cs">
       <SubType>Form</SubType>
     </Compile>

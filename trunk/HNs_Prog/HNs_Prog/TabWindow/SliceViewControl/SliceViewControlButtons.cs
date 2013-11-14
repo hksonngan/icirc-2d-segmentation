@@ -24,14 +24,13 @@ namespace HNs_Prog
             for (int i = 0; i < VolumeData.XNum * VolumeData.YNum; i++)
                 CurrentXraySlice[i] = Convert.ToByte(VolumeData.VolumeDensity[CurrentSliceIndex * VolumeData.XNum * VolumeData.YNum + i]);
 
+            // Pre-processing
             if (VesselEnhancementDialog.CheckedHomohorphicFiltering)
             {
                 // Homophrphic filtering
-                HomomorphicFilter Processor = new HomomorphicFilter(VolumeData.XNum, VolumeData.YNum);
-                byte[] FilteredCurrentXraySlice = Processor.RunFiltering(CurrentXraySlice);
-
-                for (int i = 0; i < VolumeData.XNum * VolumeData.YNum; i++)
-                    CurrentXraySlice[i] = FilteredCurrentXraySlice[i];
+                HomomorphicFilter FilteringProcessor = new HomomorphicFilter(VolumeData.XNum, VolumeData.YNum);
+                byte[] FilteredCurrentXraySlice = FilteringProcessor.RunFiltering(CurrentXraySlice);
+                CurrentXraySlice = (byte[])FilteredCurrentXraySlice.Clone();
             }
 
             double[] ResultMap = new double[VolumeData.XNum * VolumeData.YNum];
@@ -64,6 +63,15 @@ namespace HNs_Prog
                 ResultMap = map.RunKrissianFluxMethod2D(VolumeData.XNum, VolumeData.YNum, CurrentXraySlice, IterNum);
                 for (int i = 0; i < VolumeData.XNum * VolumeData.YNum; i++)
                     CurrentXraySlice[i] = Convert.ToByte(ResultMap[i]);
+            }
+
+            // Post-proccesing
+            if (VesselEnhancementDialog.CheckedMedianFiltering)
+            {
+                MorphologicalFilter FilteringProcessor = new MorphologicalFilter(VolumeData.XNum, VolumeData.YNum);
+                FilteringProcessor.FType = MorphologicalFilter.FilterType.Median;
+                byte[] FilteredCurrentXraySlice = FilteringProcessor.RunFiltering(CurrentXraySlice);
+                CurrentXraySlice = (byte[])FilteredCurrentXraySlice.Clone();
             }
 
             UpdateTextureOutput(CurrentXraySlice);
