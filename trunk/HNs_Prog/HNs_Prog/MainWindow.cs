@@ -36,7 +36,7 @@ namespace HNs_Prog
                     DicomDecoder decoder = new DicomDecoder();
                     if (decoder.ScanDicomFile(aryFiles[i]))
                     {
-                        string[] ItemInfomation = new string[8];
+                        string[] ItemInfomation = new string[9];
                         for (int j = 0; j < decoder.dicomInfo.Count; j++)
                         {
                             string InfomationTag = decoder.dicomInfo[j].Substring(0, 8);
@@ -44,18 +44,20 @@ namespace HNs_Prog
                                 ItemInfomation[0] = decoder.dicomInfo[j].Substring(20, decoder.dicomInfo[j].Length - 20);
                             else if (InfomationTag.Equals("00200011"))      // Series Number
                                 ItemInfomation[1] = decoder.dicomInfo[j].Substring(25, decoder.dicomInfo[j].Length - 25);
+                            else if (InfomationTag.Equals("00280008"))      // Number of Frames
+                                ItemInfomation[2] = decoder.dicomInfo[j].Substring(28, decoder.dicomInfo[j].Length - 28);
                             else if (InfomationTag.Equals("00080020"))      // Study Date
-                                ItemInfomation[2] = decoder.dicomInfo[j].Substring(22, decoder.dicomInfo[j].Length - 22);
+                                ItemInfomation[3] = decoder.dicomInfo[j].Substring(22, decoder.dicomInfo[j].Length - 22);
                             else if (InfomationTag.Equals("00081030"))      // Study Description
-                                ItemInfomation[3] = decoder.dicomInfo[j].Substring(29, decoder.dicomInfo[j].Length - 29);
+                                ItemInfomation[4] = decoder.dicomInfo[j].Substring(29, decoder.dicomInfo[j].Length - 29);
                             else if (InfomationTag.Equals("0008103E"))      // Series Description
-                                ItemInfomation[4] = decoder.dicomInfo[j].Substring(30, decoder.dicomInfo[j].Length - 30);
+                                ItemInfomation[5] = decoder.dicomInfo[j].Substring(30, decoder.dicomInfo[j].Length - 30);
                             else if (InfomationTag.Equals("00100010"))      // Patient's Name
-                                ItemInfomation[5] = decoder.dicomInfo[j].Substring(26, decoder.dicomInfo[j].Length - 26);
+                                ItemInfomation[6] = decoder.dicomInfo[j].Substring(26, decoder.dicomInfo[j].Length - 26);
                             else if (InfomationTag.Equals("00100030"))      // Patient's Birth Date
-                                ItemInfomation[6] = decoder.dicomInfo[j].Substring(32, decoder.dicomInfo[j].Length - 32);
+                                ItemInfomation[7] = decoder.dicomInfo[j].Substring(32, decoder.dicomInfo[j].Length - 32);
                             else if (InfomationTag.Equals("00100040"))      // Patient's Sex 
-                                ItemInfomation[7] = decoder.dicomInfo[j].Substring(25, decoder.dicomInfo[j].Length - 25);
+                                ItemInfomation[8] = decoder.dicomInfo[j].Substring(25, decoder.dicomInfo[j].Length - 25);
                         }
 
                         if (DicomLibrary.Count > 0)

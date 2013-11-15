@@ -35,6 +35,7 @@
             this.ListControlVolumeLibrary = new System.Windows.Forms.ListView();
             this.columnHeaderStudyID = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderSeriesNumber = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeaderNumberOfFrames = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderStudyDate = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderStudyDesc = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeaderSeriesDesc = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -97,6 +98,7 @@
             this.ListControlVolumeLibrary.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.columnHeaderStudyID,
             this.columnHeaderSeriesNumber,
+            this.columnHeaderNumberOfFrames,
             this.columnHeaderStudyDate,
             this.columnHeaderStudyDesc,
             this.columnHeaderSeriesDesc,
@@ -123,6 +125,11 @@
             this.columnHeaderSeriesNumber.Text = "Series Number";
             this.columnHeaderSeriesNumber.Width = 100;
             // 
+            // columnHeaderNumberOfFrames
+            // 
+            this.columnHeaderNumberOfFrames.Text = "Number of Frames";
+            this.columnHeaderNumberOfFrames.Width = 125;
+            // 
             // columnHeaderStudyDate
             // 
             this.columnHeaderStudyDate.Text = "Study Date";
@@ -141,7 +148,7 @@
             // columnHeaderPatientName
             // 
             this.columnHeaderPatientName.Text = "Patient\'s Name";
-            this.columnHeaderPatientName.Width = 150;
+            this.columnHeaderPatientName.Width = 112;
             // 
             // columnHeaderPatientBirthDate
             // 
@@ -151,7 +158,7 @@
             // columnHeaderPatientSex
             // 
             this.columnHeaderPatientSex.Text = "Patient\'s Sex";
-            this.columnHeaderPatientSex.Width = 80;
+            this.columnHeaderPatientSex.Width = 98;
             // 
             // ButtonImport
             // 
@@ -211,6 +218,7 @@
         private VRViewControl VRViewWindow;
         private SliceViewControl SliceViewWindow;
         private System.Windows.Forms.ColumnHeader columnHeaderSeriesDesc;
+        private System.Windows.Forms.ColumnHeader columnHeaderNumberOfFrames;
     }
 }
 

@@ -21,8 +21,8 @@ namespace iCiRC
 
         public SCOriginalGMMTracking()
         {
-            BackModelNum = 15;
-            ForeModelNum = 15;
+            BackModelNum = 10;
+            ForeModelNum = 20;
             GMMComponent = new SpatialColorGaussianModel[BackModelNum + ForeModelNum];
             for (int i = 0; i < BackModelNum + ForeModelNum; i++)
                 GMMComponent[i] = new SpatialColorGaussianModel();
@@ -100,6 +100,50 @@ namespace iCiRC
             }
             winProgress.Close();
             return FrameMask;
+        }
+
+        void SegmentationUsingThresholding(int CurrentFrameIndex)
+        {
+            int FramePixelNum = XNum * YNum;
+            int CurrentFramePixelOffset = CurrentFrameIndex * FramePixelNum;
+            byte[] CurrentXraySlice = new byte[FramePixelNum];
+            for (int i = 0; i < FramePixelNum; i++)
+                CurrentXraySlice[i] = Convert.ToByte(FrameIntensity[CurrentFramePixelOffset + i]);
+
+            // Homophrphic filtering
+            HomomorphicFilter FilteringProcessor = new HomomorphicFilter(XNum, YNum);
+            byte[] FilteredCurrentXraySlice = FilteringProcessor.RunFiltering(CurrentXraySlice);
+            CurrentXraySlice = (byte[])FilteredCurrentXraySlice.Clone();
+
+            // Frangi's vesselness
+            const int ScaleNum = 4;
+            double[] ScaleArray = { 2.12, 2.72, 3.5, 4.0 };
+            ResponseMap map = new ResponseMap();
+            double[] Vesselness = map.RunFrangiMethod2D(XNum, YNum, CurrentXraySlice, ScaleNum, ScaleArray);
+
+            // Thresholding
+            const double VesselnessThreshold = 0.4;
+            CurrentXraySlice.Initialize();
+            for (int i = 0; i < FramePixelNum; i++)
+            {
+                if (Vesselness[i] > VesselnessThreshold)
+                    CurrentXraySlice[i] = Constants.LABEL_FOREGROUND;
+            }
+
+            // Opening operation
+            MorphologicalFilter MorphologicalProcessor = new MorphologicalFilter(XNum, YNum);
+            MorphologicalProcessor.FType = MorphologicalFilter.FilterType.Erosion;
+            FilteredCurrentXraySlice = MorphologicalProcessor.RunFiltering(CurrentXraySlice);
+            CurrentXraySlice = (byte[])FilteredCurrentXraySlice.Clone();
+            MorphologicalProcessor.FType = MorphologicalFilter.FilterType.Dilation;
+            FilteredCurrentXraySlice = MorphologicalProcessor.RunFiltering(CurrentXraySlice);
+            CurrentXraySlice = (byte[])FilteredCurrentXraySlice.Clone();
+
+            for (int i = 0; i < FramePixelNum; i++)
+            {
+                if (CurrentXraySlice[i] == Constants.LABEL_FOREGROUND)
+                    FrameMask[CurrentFramePixelOffset + i] = Constants.LABEL_FOREGROUND;
+            }
         }
 
         //---------------------------------------------------------------------------
@@ -314,6 +358,58 @@ namespace iCiRC
                         PosteriorProbability[i][k] = 1.0 / Convert.ToDouble(BackModelNum);
                 }
                 else if (FrameMask[i] == Constants.LABEL_FOREGROUND)
+                {
+                    for (int k = BackModelNum; k < TotalModelNum; k++)
+                        PosteriorProbability[i][k] = 1.0 / Convert.ToDouble(ForeModelNum);
+                }
+            }
+            return PosteriorProbability;
+        }
+
+        //---------------------------------------------------------------------------
+        /** @brief For the first frame, thresholding segmentation and assignment of the posterior probability  
+            @author Hyunna Lee
+            @date 2013.11.08
+            @return uniformly assigned posterior probability 
+        */
+        //-------------------------------------------------------------------------
+        double[][] InitialExpectationStep(int CurrentFrameIndex)
+        {
+            int TotalModelNum = BackModelNum + ForeModelNum;
+            int FramePixelNum = XNum * YNum;
+            int CurrentFrameOffset = CurrentFrameIndex * FramePixelNum;
+
+            // K-means clustering
+            int[] ClusterBuffer = new int[FramePixelNum];
+            ClusterBuffer.Initialize();
+
+            // Initial cluster assignment by Random()
+            Random randomizer = new Random(Convert.ToInt32(DateTime.Now.Ticks));
+            for (int i = 0; i < FramePixelNum; i++)
+            {
+                if (FrameMask[CurrentFrameOffset + i] == Constants.LABEL_BACKGROUND)
+                    ClusterBuffer[i] = randomizer.Next(0, BackModelNum);
+                else
+                    ClusterBuffer[i] = randomizer.Next(BackModelNum, TotalModelNum);
+            }
+
+
+
+            // 1st E-step
+            double[][] PosteriorProbability = new double[FramePixelNum][];
+            for (int i = 0; i < FramePixelNum; i++)
+            {
+                // Initialize the probability array
+                PosteriorProbability[i] = new double[TotalModelNum];
+                PosteriorProbability[i].Initialize();
+
+                // For each pixel z, compute the posterior probability, P(k|z)
+                if (FrameMask[CurrentFrameOffset + i] == Constants.LABEL_BACKGROUND)
+                {
+                    for (int k = 0; k < BackModelNum; k++)
+                        PosteriorProbability[i][k] = 1.0 / Convert.ToDouble(BackModelNum);
+                }
+                else if (FrameMask[CurrentFrameOffset + i] == Constants.LABEL_FOREGROUND)
                 {
                     for (int k = BackModelNum; k < TotalModelNum; k++)
                         PosteriorProbability[i][k] = 1.0 / Convert.ToDouble(ForeModelNum);
