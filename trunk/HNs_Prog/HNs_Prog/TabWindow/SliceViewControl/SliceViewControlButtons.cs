@@ -109,7 +109,12 @@ namespace HNs_Prog
             GMMDialog GMMModelDialog = new GMMDialog();
             GMMModelDialog.ShowDialog();
 
-            if (GMMModelDialog.ModelIndex == GMMDialog.GMMModel.SCOriginal)
+            if (GMMModelDialog.ModelIndex == GMMDialog.GMMModel.Intensity)
+            {
+                VesselTracking tracker = new IntensityGMMTracking();
+                VolumeData.VolumeMask = tracker.RunTracking(VolumeData.XNum, VolumeData.YNum, VolumeData.ZNum, VolumeData.VolumeDensity);
+            }
+            else if (GMMModelDialog.ModelIndex == GMMDialog.GMMModel.SCOriginal)
             {
                 VesselTracking tracker = new SCOriginalGMMTracking();
                 VolumeData.VolumeMask = tracker.RunTracking(VolumeData.XNum, VolumeData.YNum, VolumeData.ZNum, VolumeData.VolumeDensity);
@@ -120,7 +125,6 @@ namespace HNs_Prog
                 VolumeData.VolumeMask = tracker.RunTracking(VolumeData.XNum, VolumeData.YNum, VolumeData.ZNum, VolumeData.VolumeDensity);
             }
 
-            
             this.CheckBoxMasking.Enabled = true;
             this.CheckBoxMasking.Checked = true;
             this.PanelSliceImage.Invalidate();

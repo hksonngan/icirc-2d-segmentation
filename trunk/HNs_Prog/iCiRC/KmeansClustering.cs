@@ -12,7 +12,7 @@ namespace iCiRC
 
         public KmeansClustering()
         {
-            CriterionType = DistanceCriterion.Position;
+            CriterionType = DistanceCriterion.Intensity;
         }
 
         public int RunClustering(int paraXNum, int paraYNum, byte[] paraImageMask, byte paraObjectLabel)
@@ -27,11 +27,18 @@ namespace iCiRC
             LabelNum = 0;
             ClusterLabel = new int[XNum * YNum];
             ClusterLabel.Initialize();
-            
-            if (paraObjectLabel == Constants.LABEL_BACKGROUND)
-                InitialAssignment(200.0);
-            else if (paraObjectLabel == Constants.LABEL_FOREGROUND)
-                InitialAssignment(100.0);
+
+            if (CriterionType == DistanceCriterion.Intensity)
+            {
+                LabelNum = InitialAssignment(20.0);
+            }
+            else if (CriterionType == DistanceCriterion.Position)
+            {
+                if (paraObjectLabel == Constants.LABEL_BACKGROUND)
+                    LabelNum = InitialAssignment(200.0);
+                else if (paraObjectLabel == Constants.LABEL_FOREGROUND)
+                    LabelNum = InitialAssignment(100.0);
+            }
 
             for (int iter = 0; iter < 5; iter++)
             {
@@ -41,7 +48,7 @@ namespace iCiRC
             return LabelNum;
         }
 
-        private void InitialAssignment(double DistanceThreshold)
+        private int InitialAssignment(double DistanceThreshold)
         {
             List<Vector> ClusterMeanList = new List<Vector>();
             for (int i = 0; i < XNum * YNum; i++)
@@ -62,17 +69,26 @@ namespace iCiRC
                     }
                     if (ClosestClusterIndex == 0)
                     {
-                        Vector CurrentPixel = new Vector(2);
-                        CurrentPixel[0] = Convert.ToDouble(i % XNum);
-                        CurrentPixel[1] = Convert.ToDouble(i / XNum);
-                        ClusterMeanList.Add(CurrentPixel);
+                        if (CriterionType == DistanceCriterion.Intensity)
+                        {
+                            Vector CurrentPixel = new Vector(1);
+                            CurrentPixel[0] = Convert.ToDouble(ImageMask[i]);
+                            ClusterMeanList.Add(CurrentPixel);
+                        }
+                        else if (CriterionType == DistanceCriterion.Position)
+                        {
+                            Vector CurrentPixel = new Vector(2);
+                            CurrentPixel[0] = Convert.ToDouble(i % XNum);
+                            CurrentPixel[1] = Convert.ToDouble(i / XNum);
+                            ClusterMeanList.Add(CurrentPixel);
+                        }
                         ClusterLabel[i] = ClusterMeanList.Count;
                     }
                     else
                         ClusterLabel[i] = ClosestClusterIndex;
                 }
             }
-            LabelNum = ClusterMeanList.Count;
+            return ClusterMeanList.Count;
         }
 
         private void UpdateAssignment()
@@ -103,28 +119,52 @@ namespace iCiRC
             ClusterMean = new Vector[LabelNum];
             int[] ClusterSize = new int[LabelNum];
             ClusterSize.Initialize();
-            for (int i = 0; i < LabelNum; i++)
+            if (CriterionType == DistanceCriterion.Intensity)
             {
-                ClusterMean[i] = new Vector(2);
-                ClusterMean[i][0] = ClusterMean[i][1] = 0.0;
-            }
-
-            for (int i = 0; i < XNum * YNum; i++)
-            {
-                if (ImageMask[i] == ObjectLabel)
+                for (int i = 0; i < LabelNum; i++)
                 {
-                    ClusterMean[ClusterLabel[i] - 1][0] += Convert.ToDouble(i % XNum);
-                    ClusterMean[ClusterLabel[i] - 1][1] += Convert.ToDouble(i / XNum);
-                    ClusterSize[ClusterLabel[i] - 1]++;
+                    ClusterMean[i] = new Vector(1);
+                    ClusterMean[i][0] = 0.0;
+                }
+
+                for (int i = 0; i < XNum * YNum; i++)
+                {
+                    if (ImageMask[i] == ObjectLabel)
+                    {
+                        ClusterMean[ClusterLabel[i] - 1][0] += Convert.ToDouble(ImageMask[i]);
+                        ClusterSize[ClusterLabel[i] - 1]++;
+                    }
+                }
+                for (int i = 0; i < LabelNum; i++)
+                {
+                    if (ClusterSize[i] > 0)
+                        ClusterMean[i][0] /= Convert.ToDouble(ClusterSize[i]);
                 }
             }
-
-            for (int i = 0; i < LabelNum; i++)
+            else if (CriterionType == DistanceCriterion.Position)
             {
-                if (ClusterSize[i] > 0)
+                for (int i = 0; i < LabelNum; i++)
                 {
-                    ClusterMean[i][0] /= Convert.ToDouble(ClusterSize[i]);
-                    ClusterMean[i][1] /= Convert.ToDouble(ClusterSize[i]);
+                    ClusterMean[i] = new Vector(2);
+                    ClusterMean[i][0] = ClusterMean[i][1] = 0.0;
+                }
+
+                for (int i = 0; i < XNum * YNum; i++)
+                {
+                    if (ImageMask[i] == ObjectLabel)
+                    {
+                        ClusterMean[ClusterLabel[i] - 1][0] += Convert.ToDouble(i % XNum);
+                        ClusterMean[ClusterLabel[i] - 1][1] += Convert.ToDouble(i / XNum);
+                        ClusterSize[ClusterLabel[i] - 1]++;
+                    }
+                }
+                for (int i = 0; i < LabelNum; i++)
+                {
+                    if (ClusterSize[i] > 0)
+                    {
+                        ClusterMean[i][0] /= Convert.ToDouble(ClusterSize[i]);
+                        ClusterMean[i][1] /= Convert.ToDouble(ClusterSize[i]);
+                    }
                 }
             }
         }

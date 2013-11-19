@@ -76,6 +76,7 @@
     <Compile Include="Filters.cs" />
     <Compile Include="FrameProcessing.cs" />
     <Compile Include="HomomorphicFilter.cs" />
+    <Compile Include="Tracking\IntensityGMMTracking.cs" />
     <Compile Include="KmeansClustering.cs" />
     <Compile Include="MorphologicalFilter.cs" />
     <Compile Include="ProgressWindow.cs">
