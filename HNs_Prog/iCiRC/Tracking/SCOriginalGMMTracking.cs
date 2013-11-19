@@ -5,7 +5,7 @@ using System.Text;
 using MathNet.Numerics.LinearAlgebra;
 using ManagedMRF;
 
-namespace iCiRC
+namespace iCiRC.Tracking
 {
     //---------------------------------------------------------------------------
     /** @class SCOriginalGMMTracking
