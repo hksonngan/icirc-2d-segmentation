@@ -9,6 +9,7 @@ using System.IO;
 using System.Windows.Forms;
 using Microsoft.DirectX.Direct3D;
 using iCiRC;
+using iCiRC.Tracking;
 using HNs_Prog.Dialog;
 
 namespace HNs_Prog

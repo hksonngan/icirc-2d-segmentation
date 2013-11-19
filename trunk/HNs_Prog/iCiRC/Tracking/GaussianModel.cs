@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using MathNet.Numerics.LinearAlgebra;
 
-namespace iCiRC
+namespace iCiRC.Tracking
 {
     //---------------------------------------------------------------------------
     /** @class IntensityGaussianModel
