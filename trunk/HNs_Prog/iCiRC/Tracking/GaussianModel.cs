@@ -42,6 +42,59 @@ namespace iCiRC.Tracking
     }
 
     //---------------------------------------------------------------------------
+    /** @class IntensityFrangiGaussianModel
+        @author Hyunna Lee
+        @date 2013.11.19
+        @brief GMM Model parameters for intensity component
+    */
+    //-------------------------------------------------------------------------
+    class IntensityVesselnessGaussianModel
+    {
+        public double IntensityMean;    ///< Mean of intensity component
+        public double VesselnessMean;    ///< Mean of intensity component
+        public double IntensityVar;     ///< Covariance of intensity component
+        public double VesselnessVar;     ///< Covariance of intensity component
+        public double Weight;           ///< Weight of this GMM component in the mixture model
+
+        public IntensityVesselnessGaussianModel()
+        {
+            IntensityMean = 128.0;
+            VesselnessMean = 0.5;
+            IntensityVar = 0.0;
+            VesselnessVar = 0.0;
+            Weight = 0.0;
+        }
+
+        //---------------------------------------------------------------------------
+        /** @brief Gaussian probability density function for univariate
+            @author Hyunna Lee
+            @date 2013.11.19
+            @param Intensity : intensity component of the current instant 
+            @return Probability of the current (intensity) instant
+        */
+        //-------------------------------------------------------------------------
+        public double GetIntensityGaussianProbability(double Intensity)
+        {
+            double Difference = Intensity - IntensityMean;
+            return Math.Exp(-(Difference * Difference) / (2.0 * IntensityVar)) / (Math.Sqrt(2.0 * Math.PI) * Math.Sqrt(IntensityVar));
+        }
+
+        //---------------------------------------------------------------------------
+        /** @brief Gaussian probability density function for univariate
+            @author Hyunna Lee
+            @date 2013.11.19
+            @param Vesselness : vesselness component of the current instant 
+            @return Probability of the current (vesselness) instant
+        */
+        //-------------------------------------------------------------------------
+        public double GetVesselnessGaussianProbability(double Vesselness)
+        {
+            double Difference = Vesselness - VesselnessMean;
+            return Math.Exp(-(Difference * Difference) / (2.0 * VesselnessVar)) / (Math.Sqrt(2.0 * Math.PI) * Math.Sqrt(VesselnessVar));
+        }
+    }
+
+    //---------------------------------------------------------------------------
     /** @class SpatialColorGaussianModel
         @author Hyunna Lee
         @date 2013.11.07
