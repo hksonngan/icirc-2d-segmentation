@@ -88,6 +88,8 @@ namespace HNs_Prog
                 FilteringProcessor.FType = MorphologicalFilter.FilterType.Dilation;
                 FilteredCurrentXraySlice = FilteringProcessor.RunFiltering(ResultLabeling);
                 ResultLabeling = (byte[])FilteredCurrentXraySlice.Clone();
+                FilteredCurrentXraySlice = FilteringProcessor.RunFiltering(ResultLabeling);
+                ResultLabeling = (byte[])FilteredCurrentXraySlice.Clone();
 
                 VolumeData.VolumeMask = new byte[VolumeData.XNum * VolumeData.YNum * VolumeData.ZNum];
                 VolumeData.VolumeMask.Initialize();
@@ -107,8 +109,6 @@ namespace HNs_Prog
             GMMDialog GMMModelDialog = new GMMDialog();
             GMMModelDialog.ShowDialog();
 
-            VolumeData.VolumeMask = new byte[VolumeData.XNum * VolumeData.YNum * VolumeData.ZNum];
-            VolumeData.VolumeMask.Initialize();
             if (GMMModelDialog.ModelIndex == GMMDialog.GMMModel.SCOriginal)
             {
                 VesselTracking tracker = new SCOriginalGMMTracking();
@@ -119,6 +119,11 @@ namespace HNs_Prog
                 VesselTracking tracker = new SIFrangiGMMTracking();
                 VolumeData.VolumeMask = tracker.RunTracking(VolumeData.XNum, VolumeData.YNum, VolumeData.ZNum, VolumeData.VolumeDensity);
             }
+
+            
+            this.CheckBoxMasking.Enabled = true;
+            this.CheckBoxMasking.Checked = true;
+            this.PanelSliceImage.Invalidate();
         }
 
         private void ButtonFrameProcessingClick(object sender, EventArgs e)
