@@ -82,7 +82,8 @@ namespace iCiRC
             for (int f = 31; f < 32; f++)
             {
                 // Weight normalization (Fore/back seperated GMM -> Global GMM)
-                WeightNormalization(f - 1);
+                WeightNorm
+             * alization(f - 1);
 
                 // Pre-updating EM
                 for (int iter = 0; iter < EMIterNum; iter++)
