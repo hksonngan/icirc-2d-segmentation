@@ -70,7 +70,7 @@ namespace iCiRC
             double det = SpatialCoVar.Determinant();
             double Difference = DifferenceVector[0] * (DifferenceVector[0] * InvCoVar[0, 0] + DifferenceVector[1] * InvCoVar[1, 0])
                               + DifferenceVector[1] * (DifferenceVector[0] * InvCoVar[0, 1] + DifferenceVector[1] * InvCoVar[1, 1]);
-            return Math.Exp(-Difference / 2.0) / ((2.0 * Math.PI) * Math.Sqrt(det));
+            return Math.Exp(-Difference / 2.0) / (2.0 * Math.PI * Math.Sqrt(det));
         }
 
         //---------------------------------------------------------------------------

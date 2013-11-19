@@ -70,11 +70,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Clustering.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="FFT.cs" />
     <Compile Include="Filters.cs" />
     <Compile Include="FrameProcessing.cs" />
     <Compile Include="HomomorphicFilter.cs" />
+    <Compile Include="KmeansClustering.cs" />
     <Compile Include="MorphologicalFilter.cs" />
     <Compile Include="ProgressWindow.cs">
       <SubType>Form</SubType>
