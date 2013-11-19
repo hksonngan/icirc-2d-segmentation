@@ -11,13 +11,13 @@ namespace HNs_Prog.Dialog
 {
     public partial class GMMDialog : Form
     {
-        public enum GMMModel { SCOriginal, SIFrangi };
+        public enum GMMModel { Intensity, SCOriginal, SIFrangi };
         public GMMModel ModelIndex;
 
         public GMMDialog()
         {
             InitializeComponent();
-            ModelIndex = GMMModel.SCOriginal;
+            ModelIndex = GMMModel.Intensity;
         }
 
         private void ButtonRunClick(object sender, EventArgs e)
@@ -27,7 +27,9 @@ namespace HNs_Prog.Dialog
 
         private void RadioButtonCheckedChanged(object sender, EventArgs e)
         {
-            if (RadioButtonGMMSCOriginal.Checked)
+            if (RadioButtonGMMIntensity.Checked)
+                ModelIndex = GMMModel.Intensity;
+            else if (RadioButtonGMMSCOriginal.Checked)
                 ModelIndex = GMMModel.SCOriginal;
             else if (RadioButtonGMMSIFrangi.Checked)
                 ModelIndex = GMMModel.SIFrangi;

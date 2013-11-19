@@ -7,6 +7,41 @@ using MathNet.Numerics.LinearAlgebra;
 namespace iCiRC
 {
     //---------------------------------------------------------------------------
+    /** @class IntensityGaussianModel
+        @author Hyunna Lee
+        @date 2013.11.19
+        @brief GMM Model parameters for intensity component
+    */
+    //-------------------------------------------------------------------------
+    class IntensityGaussianModel
+    {
+        public double IntensityMean;    ///< Mean of intensity component
+        public double IntensityVar;     ///< Covariance of intensity component
+        public double Weight;           ///< Weight of this GMM component in the mixture model
+
+        public IntensityGaussianModel()
+        {
+            IntensityMean = 128.0;
+            IntensityVar = 0.0;
+            Weight = 0.0;
+        }
+
+        //---------------------------------------------------------------------------
+        /** @brief Gaussian probability density function for univariate
+            @author Hyunna Lee
+            @date 2013.11.19
+            @param Intensity : Intensity component of the current instant 
+            @return Probability of the current (intensity) instant
+        */
+        //-------------------------------------------------------------------------
+        public double GetGaussianProbability(double Intensity)
+        {
+            double Difference = Intensity - IntensityMean;
+            return Math.Exp(-(Difference * Difference) / (2.0 * IntensityVar)) / (Math.Sqrt(2.0 * Math.PI) * Math.Sqrt(IntensityVar));
+        }
+    }
+
+    //---------------------------------------------------------------------------
     /** @class SpatialColorGaussianModel
         @author Hyunna Lee
         @date 2013.11.07
@@ -77,7 +112,7 @@ namespace iCiRC
         /** @brief Gaussian probability density function for univariate
             @author Hyunna Lee
             @date 2013.11.07
-            @param Spatial : Intensity component of the current instant 
+            @param Intensity : Intensity component of the current instant 
             @return Probability of the current (intensity) instant
         */
         //-------------------------------------------------------------------------
