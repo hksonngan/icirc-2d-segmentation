@@ -11,7 +11,7 @@ namespace HNs_Prog.Dialog
 {
     public partial class GMMDialog : Form
     {
-        public enum GMMModel { Intensity, SCOriginal, SIFrangi };
+        public enum GMMModel { Intensity, IVesselness, SCOriginal, SIFrangi };
         public GMMModel ModelIndex;
 
         public GMMDialog()
@@ -29,6 +29,8 @@ namespace HNs_Prog.Dialog
         {
             if (RadioButtonGMMIntensity.Checked)
                 ModelIndex = GMMModel.Intensity;
+            else if (RadioButtonGMMIVesselness.Checked)
+                ModelIndex = GMMModel.IVesselness;
             else if (RadioButtonGMMSCOriginal.Checked)
                 ModelIndex = GMMModel.SCOriginal;
             else if (RadioButtonGMMSIFrangi.Checked)

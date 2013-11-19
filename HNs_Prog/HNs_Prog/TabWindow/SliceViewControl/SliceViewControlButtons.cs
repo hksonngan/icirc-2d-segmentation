@@ -115,6 +115,11 @@ namespace HNs_Prog
                 VesselTracking tracker = new IntensityGMMTracking();
                 VolumeData.VolumeMask = tracker.RunTracking(VolumeData.XNum, VolumeData.YNum, VolumeData.ZNum, VolumeData.VolumeDensity);
             }
+            else if (GMMModelDialog.ModelIndex == GMMDialog.GMMModel.IVesselness)
+            {
+                VesselTracking tracker = new IVesselnessGMMTracking();
+                VolumeData.VolumeMask = tracker.RunTracking(VolumeData.XNum, VolumeData.YNum, VolumeData.ZNum, VolumeData.VolumeDensity);
+            }
             else if (GMMModelDialog.ModelIndex == GMMDialog.GMMModel.SCOriginal)
             {
                 VesselTracking tracker = new SCOriginalGMMTracking();
