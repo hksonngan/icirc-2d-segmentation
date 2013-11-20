@@ -310,6 +310,20 @@ namespace iCiRC.Tracking
                 else
                     FrameMask[CurrentFramePixelOffset + i] = Constants.LABEL_BACKGROUND;
             }
+
+            // SRG clustering
+            /*
+            byte[] CurrentSliceFrameMask = new byte[FramePixelNum];
+            for (int i = 0; i < FramePixelNum; i++)
+                CurrentSliceFrameMask[i] = FrameMask[CurrentFramePixelOffset + i];
+            SRGClustering ForeClustering = new SRGClustering(512 * 512);
+            ForeClustering.RunClustering(XNum, YNum, CurrentSliceFrameMask, Constants.LABEL_FOREGROUND);
+            for (int i = 0; i < FramePixelNum; i++)
+            {
+                if (ForeClustering.ClusterLabel[i] == Constants.LABEL_BACKGROUND)
+                    FrameMask[CurrentFramePixelOffset + i] = CurrentSliceFrameMask[i] = Constants.LABEL_BACKGROUND;
+            }
+             * */
         }
 
         private void ComputeVesselness(int CurrentFrameIndex)

@@ -122,27 +122,6 @@ namespace iCiRC.Tracking
         /** @brief Gaussian probability density function for bivariate
             @author Hyunna Lee
             @date 2013.11.07
-            @param Spatial : Spatial component of the current instant 
-            @return Probability of the current (spatial) instant
-        */
-        //-------------------------------------------------------------------------
-        public double GetGaussianProbability(Vector Spatial)
-        {
-            Vector DifferenceVector = new Vector(2);
-            DifferenceVector[0] = Spatial[0] - SpatialMean[0];
-            DifferenceVector[1] = Spatial[1] - SpatialMean[1];
-            Matrix InvCoVar = new Matrix(2, 2);
-            InvCoVar = SpatialCoVar.Inverse();
-            double det = SpatialCoVar.Determinant();
-            double Difference = DifferenceVector[0] * (DifferenceVector[0] * InvCoVar[0, 0] + DifferenceVector[1] * InvCoVar[1, 0])
-                              + DifferenceVector[1] * (DifferenceVector[0] * InvCoVar[0, 1] + DifferenceVector[1] * InvCoVar[1, 1]);
-            return Math.Exp(-Difference / 2.0) / ((2.0 * Math.PI) * Math.Sqrt(det));
-        }
-
-        //---------------------------------------------------------------------------
-        /** @brief Gaussian probability density function for bivariate
-            @author Hyunna Lee
-            @date 2013.11.07
             @param SpatialX : Spatial X component of the current instant 
             @param SpatialY : Spatial Y component of the current instant 
             @return Probability of the current (spatial) instant

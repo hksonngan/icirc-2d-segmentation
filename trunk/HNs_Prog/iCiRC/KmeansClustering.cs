@@ -37,14 +37,16 @@ namespace iCiRC
                 if (paraObjectLabel == Constants.LABEL_BACKGROUND)
                     LabelNum = InitialAssignment(200.0);
                 else if (paraObjectLabel == Constants.LABEL_FOREGROUND)
-                    LabelNum = InitialAssignment(100.0);
+                    LabelNum = InitialAssignment(10.0);
             }
 
+            /*
             for (int iter = 0; iter < 5; iter++)
             {
                 UpdateClusterMean();
                 UpdateAssignment();
             }
+             * */
             return LabelNum;
         }
 

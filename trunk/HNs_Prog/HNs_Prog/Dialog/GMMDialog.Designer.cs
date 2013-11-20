@@ -33,6 +33,7 @@
             this.ButtonRun = new System.Windows.Forms.Button();
             this.RadioButtonGMMIntensity = new System.Windows.Forms.RadioButton();
             this.RadioButtonGMMIVesselness = new System.Windows.Forms.RadioButton();
+            this.RadioButtonGMMPerPixelIntensity = new System.Windows.Forms.RadioButton();
             this.SuspendLayout();
             // 
             // RadioButtonGMMIntensity
@@ -82,6 +83,18 @@
             this.RadioButtonGMMSIFrangi.UseVisualStyleBackColor = true;
             this.RadioButtonGMMSIFrangi.CheckedChanged += new System.EventHandler(this.RadioButtonCheckedChanged);
             // 
+            // RadioButtonGMMPerPixelIntensity
+            // 
+            this.RadioButtonGMMPerPixelIntensity.AutoSize = true;
+            this.RadioButtonGMMPerPixelIntensity.Location = new System.Drawing.Point(13, 121);
+            this.RadioButtonGMMPerPixelIntensity.Name = "RadioButtonGMMPerPixelIntensity";
+            this.RadioButtonGMMPerPixelIntensity.Size = new System.Drawing.Size(277, 16);
+            this.RadioButtonGMMPerPixelIntensity.TabIndex = 5;
+            this.RadioButtonGMMPerPixelIntensity.TabStop = true;
+            this.RadioButtonGMMPerPixelIntensity.Text = "Per-Pixel Intensity GMM Model (Chris et al.)";
+            this.RadioButtonGMMPerPixelIntensity.UseVisualStyleBackColor = true;
+            this.RadioButtonGMMPerPixelIntensity.CheckedChanged += new System.EventHandler(this.RadioButtonCheckedChanged);
+            // 
             // ButtonRun
             // 
             this.ButtonRun.Location = new System.Drawing.Point(13, 227);
@@ -97,6 +110,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(394, 262);
+            this.Controls.Add(this.RadioButtonGMMPerPixelIntensity);
             this.Controls.Add(this.RadioButtonGMMIVesselness);
             this.Controls.Add(this.RadioButtonGMMIntensity);
             this.Controls.Add(this.ButtonRun);
@@ -117,5 +131,6 @@
         private System.Windows.Forms.RadioButton RadioButtonGMMSIFrangi;
         private System.Windows.Forms.RadioButton RadioButtonGMMIntensity;
         private System.Windows.Forms.RadioButton RadioButtonGMMIVesselness;
+        private System.Windows.Forms.RadioButton RadioButtonGMMPerPixelIntensity;
     }
 }

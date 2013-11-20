@@ -130,6 +130,10 @@ namespace HNs_Prog
                 VesselTracking tracker = new SIFrangiGMMTracking();
                 VolumeData.VolumeMask = tracker.RunTracking(VolumeData.XNum, VolumeData.YNum, VolumeData.ZNum, VolumeData.VolumeDensity);
             }
+            else if (GMMModelDialog.ModelIndex == GMMDialog.GMMModel.PerpixelIntensity)
+            {
+                // To do
+            }
 
             this.CheckBoxMasking.Enabled = true;
             this.CheckBoxMasking.Checked = true;

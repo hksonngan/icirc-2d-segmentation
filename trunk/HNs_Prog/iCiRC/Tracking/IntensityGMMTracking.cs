@@ -104,11 +104,6 @@ namespace iCiRC.Tracking
             for (int i = 0; i < FramePixelNum; i++)
                 CurrentXraySlice[i] = Convert.ToByte(FrameIntensity[CurrentFramePixelOffset + i]);
 
-            // Homophrphic filtering
-            //HomomorphicFilter FilteringProcessor = new HomomorphicFilter(XNum, YNum);
-            //byte[] FilteredCurrentXraySlice = FilteringProcessor.RunFiltering(CurrentXraySlice);
-            //CurrentXraySlice = (byte[])FilteredCurrentXraySlice.Clone();
-
             // Frangi's vesselness
             const int ScaleNum = 4;
             double[] ScaleArray = {2.12, 2.72, 3.5, 4.0};
