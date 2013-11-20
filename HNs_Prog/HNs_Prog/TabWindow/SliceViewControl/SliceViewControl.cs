@@ -208,7 +208,7 @@ namespace HNs_Prog
                     else if (VolumeData.VolumeMask[CurrentSliceOffset + i] == 0x04)
                         PixelArray[i] = (uint)Color.Red.ToArgb();
                     else if (VolumeData.VolumeMask[CurrentSliceOffset + i] == 0x05)
-                            PixelArray[i] = (uint)Color.Red.ToArgb();
+                        PixelArray[i] = (uint)Color.Beige.ToArgb();
                     else if (VolumeData.VolumeMask[CurrentSliceOffset + i] == 0xff)
                         PixelArray[i] = (uint)Color.Yellow.ToArgb();
                 }

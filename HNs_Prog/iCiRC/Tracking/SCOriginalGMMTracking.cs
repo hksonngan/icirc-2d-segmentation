@@ -53,76 +53,88 @@ namespace iCiRC.Tracking
             FrameMask = new byte[TotalPixelNum];
             FrameMask.Initialize();
 
+            const int EMIterNum = 5;
+            const int StartFrameIndex = 30;
+
             ProgressWindow winProgress = new ProgressWindow("Vessel tracking...", 0, FrameNum);
             winProgress.Show();
 
             // For the first frame (Post-updating)
-            SegmentationUsingThresholding(30);
-            double[][] PosteriorProbability = InitialExpectationStep(30);
+            SegmentationUsingVesselnessThresholding(StartFrameIndex);
+            InitializeGMMModelParameters(StartFrameIndex);
+            for (int iter = 0; iter < EMIterNum; iter++)        // EM interation
+            {
+                double[,] PosteriorProbability = ExpectationStepInPostUpdating(StartFrameIndex);
+                MaximizationStepInPostUpdating(StartFrameIndex, PosteriorProbability);
+            }
+            winProgress.Increment(1);
+
+            // For each frame 
+            for (int f = StartFrameIndex + 1; f < StartFrameIndex + 2; f++)
+            {
+                SegmentationUsingDataCost(f);
+
+                // Post-undating EM
+                for (int iter = 0; iter < EMIterNum; iter++)
+                {
+                    double[,] PosteriorProbability = ExpectationStepInPostUpdating(f);
+                    MaximizationStepInPostUpdating(f, PosteriorProbability);
+                }
+
+                winProgress.Increment(1);
+            }
+            winProgress.Close();
+            return FrameMask;
+        }
+
+        void InitializeGMMModelParameters(int CurrentFrameIndex)
+        {
+            int FramePixelNum = XNum * YNum;
+            int CurrentFrameOffset = CurrentFrameIndex * FramePixelNum;
+            byte[] CurrentSliceFrameMask = new byte[FramePixelNum];
+            for (int i = 0; i < FramePixelNum; i++)
+                CurrentSliceFrameMask[i] = FrameMask[CurrentFrameOffset + i];
+
+            // SRG clustering
+            SRGClustering ForeClustering = new SRGClustering(64, 32 * 32);
+            ForeModelNum = ForeClustering.RunClustering(XNum, YNum, CurrentSliceFrameMask, Constants.LABEL_FOREGROUND);
+            for (int i = 0; i < FramePixelNum; i++)
+            {
+                if (ForeClustering.ClusterLabel[i] == Constants.LABEL_BACKGROUND)
+                    FrameMask[CurrentFrameOffset + i] = CurrentSliceFrameMask[i] = Constants.LABEL_BACKGROUND;
+            }
+
+            KmeansClustering BackClustering = new KmeansClustering();
+            BackClustering.CriterionType = Clustering.DistanceCriterion.Position;
+            BackModelNum = BackClustering.RunClustering(XNum, YNum, CurrentSliceFrameMask, Constants.LABEL_BACKGROUND);
+
             int TotalModelNum = BackModelNum + ForeModelNum;
             GMMComponent = new SpatialColorGaussianModel[TotalModelNum];
             for (int i = 0; i < TotalModelNum; i++)
                 GMMComponent[i] = new SpatialColorGaussianModel();
 
-            MaximizationStepInPostUpdating(30, PosteriorProbability);
-            WeightNormalization(30);
-            SegmentationUsingDataCostOnly(31);
-            /*
-            const int EMIterNum = 5;
-            for (int iter = 1; iter < EMIterNum; iter++)
+            // 1st E-step
+            double[,] PosteriorProbability = new double[FramePixelNum, TotalModelNum];
+            PosteriorProbability.Initialize();
+            for (int i = 0; i < FramePixelNum; i++)
             {
-                ExpectationStepInPostUpdating(30, ref PosteriorProbability);
-                MaximizationStepInPostUpdating(30, PosteriorProbability);
+                // For each pixel z, compute the posterior probability, P(k|z)
+                if (CurrentSliceFrameMask[i] == Constants.LABEL_BACKGROUND)
+                    PosteriorProbability[i, BackClustering.ClusterLabel[i] - 1] = 1.0;
+                else if (CurrentSliceFrameMask[i] == Constants.LABEL_FOREGROUND)
+                    PosteriorProbability[i, BackModelNum + ForeClustering.ClusterLabel[i] - 1] = 1.0;
             }
-            winProgress.Increment(1);
-             * */
 
-            /*
-            // For each frame 
-            for (int f = 31; f < 32; f++)
-            {
-                // Weight normalization (Fore/back seperated GMM -> Global GMM)
-                WeightNorm
-             * alization(f - 1);
-
-                // Pre-updating EM
-                for (int iter = 0; iter < EMIterNum; iter++)
-                {
-                    ExpectationStepInPreUpdating(f, ref PosteriorProbability);
-                    MaximizationStepInPreUpdating(f, PosteriorProbability);
-                }
-
-                // Weight normalization (Global GMM -> Fore/back seperated GMM)
-                WeightNormalization();
-
-                // Segmentation
-                SegmentationUsingDataCostOnly(f);
-
-                // Post-undating EM
-                for (int iter = 0; iter < EMIterNum; iter++)
-                {
-                    ExpectationStepInPostUpdating(f, ref PosteriorProbability);
-                    MaximizationStepInPostUpdating(f, PosteriorProbability);
-                }
-                winProgress.Increment(1);
-            }
-             * */
-            winProgress.Close();
-            return FrameMask;
+            MaximizationStepInPostUpdating(CurrentFrameIndex, PosteriorProbability);
         }
 
-        void SegmentationUsingThresholding(int CurrentFrameIndex)
+        void SegmentationUsingVesselnessThresholding(int CurrentFrameIndex)
         {
             int FramePixelNum = XNum * YNum;
             int CurrentFramePixelOffset = CurrentFrameIndex * FramePixelNum;
             byte[] CurrentXraySlice = new byte[FramePixelNum];
             for (int i = 0; i < FramePixelNum; i++)
                 CurrentXraySlice[i] = Convert.ToByte(FrameIntensity[CurrentFramePixelOffset + i]);
-
-            // Homophrphic filtering
-            HomomorphicFilter FilteringProcessor = new HomomorphicFilter(XNum, YNum);
-            byte[] FilteredCurrentXraySlice = FilteringProcessor.RunFiltering(CurrentXraySlice);
-            CurrentXraySlice = (byte[])FilteredCurrentXraySlice.Clone();
 
             // Frangi's vesselness
             const int ScaleNum = 4;
@@ -142,7 +154,7 @@ namespace iCiRC.Tracking
             // Opening operation
             MorphologicalFilter MorphologicalProcessor = new MorphologicalFilter(XNum, YNum);
             MorphologicalProcessor.FType = MorphologicalFilter.FilterType.Erosion;
-            FilteredCurrentXraySlice = MorphologicalProcessor.RunFiltering(CurrentXraySlice);
+            byte[] FilteredCurrentXraySlice = MorphologicalProcessor.RunFiltering(CurrentXraySlice);
             CurrentXraySlice = (byte[])FilteredCurrentXraySlice.Clone();
             MorphologicalProcessor.FType = MorphologicalFilter.FilterType.Dilation;
             FilteredCurrentXraySlice = MorphologicalProcessor.RunFiltering(CurrentXraySlice);
@@ -157,7 +169,7 @@ namespace iCiRC.Tracking
             }
         }
 
-        void SegmentationUsingDataCostOnly(int CurrentFrameIndex)
+        void SegmentationUsingDataCost(int CurrentFrameIndex)
         {
             int TotalModelNum = BackModelNum + ForeModelNum;
             int FramePixelNum = XNum * YNum;
@@ -173,16 +185,18 @@ namespace iCiRC.Tracking
                     double ForeLikelihood = 0.0;
                     for (int k = 0; k < BackModelNum; k++)
                     {
-                        double GMMLikelihood = GMMComponent[k].Weight * GMMComponent[k].GetGaussianProbability(CurrentPixelIntensity);
                         //double GMMLikelihood = GMMComponent[k].Weight * GMMComponent[k].GetGaussianProbability(x, y) * GMMComponent[k].GetGaussianProbability(CurrentPixelIntensity);
-                        
+                        double GMMLikelihood = 0.0;
+                        if (GMMComponent[k].GetGaussianProbability(x, y) > 0.2)
+                            GMMLikelihood = GMMComponent[k].Weight * GMMComponent[k].GetGaussianProbability(CurrentPixelIntensity);
                         BackLikelihood += Math.Log10(GMMLikelihood);
                     }
                     for (int k = BackModelNum; k < TotalModelNum; k++)
                     {
-                        double GMMLikelihood = GMMComponent[k].Weight * GMMComponent[k].GetGaussianProbability(CurrentPixelIntensity);
-                        
                         //double GMMLikelihood = GMMComponent[k].Weight * GMMComponent[k].GetGaussianProbability(x, y) * GMMComponent[k].GetGaussianProbability(CurrentPixelIntensity);
+                        double GMMLikelihood = 0.0;
+                        if (GMMComponent[k].GetGaussianProbability(x, y) > 0.2)
+                            GMMLikelihood = GMMComponent[k].Weight * GMMComponent[k].GetGaussianProbability(CurrentPixelIntensity);
                         ForeLikelihood += Math.Log10(GMMLikelihood);
                     }
 
@@ -373,128 +387,6 @@ namespace iCiRC.Tracking
         }
 
         //---------------------------------------------------------------------------
-        /** @brief For the first frame, thresholding segmentation and assignment of the posterior probability  
-            @author Hyunna Lee
-            @date 2013.11.08
-            @return uniformly assigned posterior probability 
-        */
-        //-------------------------------------------------------------------------
-        double[][] InitialExpectationStep()
-        {
-            int TotalModelNum = BackModelNum + ForeModelNum;
-
-            // Segmentation of the first frame using thresholding
-            int FramePixelNum = XNum * YNum;
-            const ushort VesselIntensityThresholdValue = 64;
-            for (int i = 0; i < FramePixelNum; i++)
-            {
-                if (FrameIntensity[i] < VesselIntensityThresholdValue)
-                    FrameMask[i] = Constants.LABEL_FOREGROUND;
-            }
-
-            // 1st E-step
-            double[][] PosteriorProbability = new double[FramePixelNum][];
-            for (int i = 0; i < FramePixelNum; i++)
-            {
-                // Initialize the probability array
-                PosteriorProbability[i] = new double[TotalModelNum];
-                PosteriorProbability[i].Initialize();
-
-                // For each pixel z, compute the posterior probability, P(k|z)
-                if (FrameMask[i] == Constants.LABEL_BACKGROUND)
-                {
-                    for (int k = 0; k < BackModelNum; k++)
-                        PosteriorProbability[i][k] = 1.0 / Convert.ToDouble(BackModelNum);
-                }
-                else if (FrameMask[i] == Constants.LABEL_FOREGROUND)
-                {
-                    for (int k = BackModelNum; k < TotalModelNum; k++)
-                        PosteriorProbability[i][k] = 1.0 / Convert.ToDouble(ForeModelNum);
-                }
-            }
-            return PosteriorProbability;
-        }
-
-        //---------------------------------------------------------------------------
-        /** @brief For the first frame, thresholding segmentation and assignment of the posterior probability  
-            @author Hyunna Lee
-            @date 2013.11.08
-            @return uniformly assigned posterior probability 
-        */
-        //-------------------------------------------------------------------------
-        double[][] InitialExpectationStep(int CurrentFrameIndex)
-        {
-            // K-means clustering
-            int FramePixelNum = XNum * YNum;
-            int CurrentFrameOffset = CurrentFrameIndex * FramePixelNum;
-            byte[] CurrentSliceFrameMask = new byte[FramePixelNum];
-            for (int i = 0; i < FramePixelNum; i++)
-                CurrentSliceFrameMask[i] = FrameMask[CurrentFrameOffset + i];
-
-            // K-means clustering
-            KmeansClustering BackClustering = new KmeansClustering();
-            BackModelNum = BackClustering.RunClustering(XNum, YNum, CurrentSliceFrameMask, Constants.LABEL_BACKGROUND);
-            KmeansClustering ForeClustering = new KmeansClustering();
-            ForeModelNum = ForeClustering.RunClustering(XNum, YNum, CurrentSliceFrameMask, Constants.LABEL_FOREGROUND);
-            int TotalModelNum = BackModelNum + ForeModelNum;
-
-            // 1st E-step
-            double[][] PosteriorProbability = new double[FramePixelNum][];
-            for (int i = 0; i < FramePixelNum; i++)
-            {
-                // Initialize the probability array
-                PosteriorProbability[i] = new double[TotalModelNum];
-                PosteriorProbability[i].Initialize();
-
-                // For each pixel z, compute the posterior probability, P(k|z)
-                if (CurrentSliceFrameMask[i] == Constants.LABEL_BACKGROUND)
-                    PosteriorProbability[i][BackClustering.ClusterLabel[i] - 1] = 1.0;
-                else if (CurrentSliceFrameMask[i] == Constants.LABEL_FOREGROUND)
-                    PosteriorProbability[i][BackModelNum + ForeClustering.ClusterLabel[i] - 1] = 1.0;
-            }
-            return PosteriorProbability;
-        }
-
-        //---------------------------------------------------------------------------
-        /** @brief For each frame, E-step of EM algorithm during Pre-updating  
-            @author Hyunna Lee
-            @date 2013.11.08
-            @para AssignmentProbability : posterior probability for each pixel
-            @return uniformly assigned 
-        */
-        //-------------------------------------------------------------------------
-        void ExpectationStepInPreUpdating(int CurrentFrameIndex, ref double[][] PosteriorProbability)
-        {
-            int TotalModelNum = BackModelNum + ForeModelNum;
-            int FramePixelNum = XNum * YNum;
-            int CurrentFrameOffset = CurrentFrameIndex * FramePixelNum;
-
-            double[] GMMProbability = new double[TotalModelNum];
-            GMMProbability.Initialize();
-
-            for (int y = 0; y < YNum; y++)
-            {
-                for (int x = 0; x < XNum; x++)
-                {
-                    int CurrentPixelIndex = y * XNum + x;
-                    double CurrentPixelIntensity = Convert.ToDouble(FrameIntensity[CurrentFrameOffset + CurrentPixelIndex]);
-
-                    double SumGMMProbability = 0.0;
-                    for (int k = 0; k < TotalModelNum; k++)
-                    {
-                        PosteriorProbability[CurrentPixelIndex][k] = 0.0;
-                        GMMProbability[k] = GMMComponent[k].Weight * GMMComponent[k].GetGaussianProbability(x, y)
-                                            * GMMComponent[k].GetGaussianProbability(CurrentPixelIntensity);
-                        SumGMMProbability += GMMProbability[k];
-                    }
-
-                    for (int k = 0; k < TotalModelNum; k++)
-                        PosteriorProbability[CurrentPixelIndex][k] = GMMProbability[k] / SumGMMProbability;
-                }
-            }
-        }
-
-        //---------------------------------------------------------------------------
         /** @brief For each frame, E-step of EM algorithm during Post-updating  
             @author Hyunna Lee
             @date 2013.11.08
@@ -502,13 +394,15 @@ namespace iCiRC.Tracking
             @return uniformly assigned 
         */
         //-------------------------------------------------------------------------
-        void ExpectationStepInPostUpdating(int CurrentFrameIndex, ref double[][] PosteriorProbability)
+        double[,] ExpectationStepInPostUpdating(int CurrentFrameIndex)
         {
             int TotalModelNum = BackModelNum + ForeModelNum;
             int FramePixelNum = XNum * YNum;
             int CurrentFrameOffset = CurrentFrameIndex * FramePixelNum;
 
+            double[,] PosteriorProbability = new double[FramePixelNum, TotalModelNum];
             double[] GMMProbability = new double[TotalModelNum];
+            PosteriorProbability.Initialize();
             GMMProbability.Initialize();
 
             for (int y = 0; y < YNum; y++)
@@ -517,13 +411,12 @@ namespace iCiRC.Tracking
                 {
                     int CurrentPixelIndex = y * XNum + x;
                     double CurrentPixelIntensity = Convert.ToDouble(FrameIntensity[CurrentFrameOffset + CurrentPixelIndex]);
-                    GMMProbability.Initialize();
-
                     for (int k = 0; k < TotalModelNum; k++)
                     {
-                        PosteriorProbability[CurrentPixelIndex][k] = 0.0;
-                        GMMProbability[k] = GMMComponent[k].Weight * GMMComponent[k].GetGaussianProbability(x, y)
-                                            * GMMComponent[k].GetGaussianProbability(CurrentPixelIntensity);
+                        if (GMMComponent[k].GetGaussianProbability(x, y) > 0.2)
+                            GMMProbability[k] = GMMComponent[k].Weight * GMMComponent[k].GetGaussianProbability(CurrentPixelIntensity);
+                        else
+                            GMMProbability[k] = 0.0;
                     }
 
                     double BackSumGMMProbability = 0.0;
@@ -536,104 +429,16 @@ namespace iCiRC.Tracking
                     if (FrameMask[CurrentFrameOffset + CurrentPixelIndex] == Constants.LABEL_BACKGROUND)
                     {
                         for (int k = 0; k < BackModelNum; k++)
-                            PosteriorProbability[CurrentPixelIndex][k] = GMMProbability[k] / BackSumGMMProbability;
+                            PosteriorProbability[CurrentPixelIndex,k] = GMMProbability[k] / BackSumGMMProbability;
                     }
                     else if (FrameMask[CurrentFrameOffset + CurrentPixelIndex] == Constants.LABEL_FOREGROUND)
                     {
                         for (int k = BackModelNum; k < TotalModelNum; k++)
-                            PosteriorProbability[CurrentPixelIndex][k] = GMMProbability[k] / ForeSumGMMProbability;
+                            PosteriorProbability[CurrentPixelIndex,k] = GMMProbability[k] / ForeSumGMMProbability;
                     }
                 }
             }
-        }
-
-        //---------------------------------------------------------------------------
-        /** @brief For each frame, M-step of EM algorithm during Pre-updating  
-            @author Hyunna Lee
-            @date 2013.11.08
-            @para CurrentFrameIndex : the index of the current frame
-            @para AssignmentProbability : posterior probability for each pixel
-            @return uniformly assigned 
-        */
-        //-------------------------------------------------------------------------
-        private void MaximizationStepInPreUpdating(int CurrentFrameIndex, double[][] PosteriorProbability)
-        {
-            int FramePixelNum = XNum * YNum;
-            int CurrentFrameOffset = CurrentFrameIndex * FramePixelNum;
-            int TotalModelNum = BackModelNum + ForeModelNum;
-
-            // Initialize the temporary arrays 
-            double[] SumPosterior = new double[TotalModelNum];
-            double[] SumIntensity = new double[TotalModelNum];
-            double[] SumIntensityVariance = new double[TotalModelNum];
-            Vector[] SumSpatial = new Vector[TotalModelNum];
-            Matrix[] SumSpatialVariance = new Matrix[TotalModelNum];
-            SumPosterior.Initialize();
-            SumIntensity.Initialize();
-            SumIntensityVariance.Initialize();
-            for (int k = 0; k < TotalModelNum; k++)
-            {
-                SumSpatial[k] = new Vector(2);
-                SumSpatial[k][0] = SumSpatial[k][1] = 0.0;
-                SumSpatialVariance[k] = new Matrix(2, 2);
-                SumSpatialVariance[k][0, 0] = SumSpatialVariance[k][0, 1] = SumSpatialVariance[k][1, 0] = SumSpatialVariance[k][1, 1] = 0.0;
-            }
-
-            // Compute the sum of posterior, spatial, and intensity
-            for (int y = 0; y < YNum; y++)
-            {
-                for (int x = 0; x < XNum; x++)
-                {
-                    int CurrentPixelIndex = y * XNum + x;
-                    for (int k = 0; k < TotalModelNum; k++)
-                    {
-                        SumPosterior[k] += PosteriorProbability[CurrentPixelIndex][k];
-                        SumSpatial[k][0] += PosteriorProbability[CurrentPixelIndex][k] * Convert.ToDouble(x);
-                        SumSpatial[k][1] += PosteriorProbability[CurrentPixelIndex][k] * Convert.ToDouble(y);
-                        SumIntensity[k] += PosteriorProbability[CurrentPixelIndex][k] * Convert.ToDouble(FrameIntensity[CurrentFrameOffset + CurrentPixelIndex]);
-                    }
-                }
-            }
-            // Compute the mean of each Gaussian component
-            double TotalSumPosterior = 0.0;
-            for (int k = 0; k < TotalModelNum; k++)
-            {
-                GMMComponent[k].SpatialMean[0] = SumSpatial[k][0] / SumPosterior[k];
-                GMMComponent[k].SpatialMean[1] = SumSpatial[k][1] / SumPosterior[k];
-                GMMComponent[k].IntensityMean = SumIntensity[k] / SumPosterior[k];
-                TotalSumPosterior += SumPosterior[k];
-            }
-
-            // Compute the sum of variance of spatial and intensity
-            for (int y = 0; y < YNum; y++)
-            {
-                for (int x = 0; x < XNum; x++)
-                {
-                    int CurrentPixelIndex = y * XNum + x;
-                    for (int k = 0; k < TotalModelNum; k++)
-                    {
-                        Vector SpatialDifference = new Vector(2);
-                        SpatialDifference[0] = Convert.ToDouble(x) - GMMComponent[k].SpatialMean[0];
-                        SpatialDifference[1] = Convert.ToDouble(y) - GMMComponent[k].SpatialMean[1];
-                        double IntensityDifference = Convert.ToDouble(FrameIntensity[CurrentFrameOffset + CurrentPixelIndex]) - GMMComponent[k].IntensityMean;
-                        SumSpatialVariance[k][0, 0] += PosteriorProbability[CurrentPixelIndex][k] * SpatialDifference[0] * SpatialDifference[0];
-                        SumSpatialVariance[k][0, 1] += PosteriorProbability[CurrentPixelIndex][k] * SpatialDifference[0] * SpatialDifference[1];
-                        SumSpatialVariance[k][1, 0] += PosteriorProbability[CurrentPixelIndex][k] * SpatialDifference[1] * SpatialDifference[0];
-                        SumSpatialVariance[k][1, 1] += PosteriorProbability[CurrentPixelIndex][k] * SpatialDifference[1] * SpatialDifference[1];
-                        SumIntensityVariance[k] += PosteriorProbability[CurrentPixelIndex][k] * IntensityDifference * IntensityDifference;
-                    }
-                }
-            }
-            // Compute the variance and weight of each Gaussian component
-            for (int k = 0; k < TotalModelNum; k++)
-            {
-                GMMComponent[k].SpatialCoVar[0, 0] = SumSpatialVariance[k][0, 0] / SumPosterior[k];
-                GMMComponent[k].SpatialCoVar[0, 1] = SumSpatialVariance[k][0, 1] / SumPosterior[k];
-                GMMComponent[k].SpatialCoVar[1, 0] = SumSpatialVariance[k][1, 0] / SumPosterior[k];
-                GMMComponent[k].SpatialCoVar[1, 1] = SumSpatialVariance[k][1, 1] / SumPosterior[k];
-                GMMComponent[k].IntensityVar = SumIntensityVariance[k] / SumPosterior[k];
-                GMMComponent[k].Weight = SumPosterior[k] / TotalSumPosterior;
-            }
+            return PosteriorProbability;
         }
 
         //---------------------------------------------------------------------------
@@ -645,7 +450,7 @@ namespace iCiRC.Tracking
             @return uniformly assigned 
         */
         //-------------------------------------------------------------------------
-        private void MaximizationStepInPostUpdating(int CurrentFrameIndex, double[][] PosteriorProbability)
+        private void MaximizationStepInPostUpdating(int CurrentFrameIndex, double[,] PosteriorProbability)
         {
             int FramePixelNum = XNum * YNum;
             int CurrentFrameOffset = CurrentFrameIndex * FramePixelNum;
@@ -678,20 +483,20 @@ namespace iCiRC.Tracking
                     {
                         for (int k = 0; k < BackModelNum; k++)
                         {
-                            SumPosterior[k] += PosteriorProbability[CurrentPixelIndex][k];
-                            SumSpatial[k][0] += PosteriorProbability[CurrentPixelIndex][k] * Convert.ToDouble(x);
-                            SumSpatial[k][1] += PosteriorProbability[CurrentPixelIndex][k] * Convert.ToDouble(y);
-                            SumIntensity[k] += PosteriorProbability[CurrentPixelIndex][k] * Convert.ToDouble(FrameIntensity[CurrentFrameOffset + CurrentPixelIndex]);
+                            SumPosterior[k] += PosteriorProbability[CurrentPixelIndex,k];
+                            SumSpatial[k][0] += PosteriorProbability[CurrentPixelIndex,k] * Convert.ToDouble(x);
+                            SumSpatial[k][1] += PosteriorProbability[CurrentPixelIndex,k] * Convert.ToDouble(y);
+                            SumIntensity[k] += PosteriorProbability[CurrentPixelIndex,k] * Convert.ToDouble(FrameIntensity[CurrentFrameOffset + CurrentPixelIndex]);
                         }
                     }
                     else if (FrameMask[CurrentFrameOffset + CurrentPixelIndex] == Constants.LABEL_FOREGROUND)
                     {
                         for (int k = BackModelNum; k < TotalModelNum; k++)
                         {
-                            SumPosterior[k] += PosteriorProbability[CurrentPixelIndex][k];
-                            SumSpatial[k][0] += PosteriorProbability[CurrentPixelIndex][k] * Convert.ToDouble(x);
-                            SumSpatial[k][1] += PosteriorProbability[CurrentPixelIndex][k] * Convert.ToDouble(y);
-                            SumIntensity[k] += PosteriorProbability[CurrentPixelIndex][k] * Convert.ToDouble(FrameIntensity[CurrentFrameOffset + CurrentPixelIndex]);
+                            SumPosterior[k] += PosteriorProbability[CurrentPixelIndex,k];
+                            SumSpatial[k][0] += PosteriorProbability[CurrentPixelIndex,k] * Convert.ToDouble(x);
+                            SumSpatial[k][1] += PosteriorProbability[CurrentPixelIndex,k] * Convert.ToDouble(y);
+                            SumIntensity[k] += PosteriorProbability[CurrentPixelIndex,k] * Convert.ToDouble(FrameIntensity[CurrentFrameOffset + CurrentPixelIndex]);
                         }
                     }
                 }
@@ -718,11 +523,11 @@ namespace iCiRC.Tracking
                             SpatialDifference[0] = Convert.ToDouble(x) - GMMComponent[k].SpatialMean[0];
                             SpatialDifference[1] = Convert.ToDouble(y) - GMMComponent[k].SpatialMean[1];
                             double IntensityDifference = Convert.ToDouble(FrameIntensity[CurrentFrameOffset + CurrentPixelIndex]) - GMMComponent[k].IntensityMean;
-                            SumSpatialVariance[k][0, 0] += PosteriorProbability[CurrentPixelIndex][k] * SpatialDifference[0] * SpatialDifference[0];
-                            SumSpatialVariance[k][0, 1] += PosteriorProbability[CurrentPixelIndex][k] * SpatialDifference[0] * SpatialDifference[1];
-                            SumSpatialVariance[k][1, 0] += PosteriorProbability[CurrentPixelIndex][k] * SpatialDifference[1] * SpatialDifference[0];
-                            SumSpatialVariance[k][1, 1] += PosteriorProbability[CurrentPixelIndex][k] * SpatialDifference[1] * SpatialDifference[1];
-                            SumIntensityVariance[k] += PosteriorProbability[CurrentPixelIndex][k] * IntensityDifference * IntensityDifference;
+                            SumSpatialVariance[k][0, 0] += PosteriorProbability[CurrentPixelIndex,k] * SpatialDifference[0] * SpatialDifference[0];
+                            SumSpatialVariance[k][0, 1] += PosteriorProbability[CurrentPixelIndex,k] * SpatialDifference[0] * SpatialDifference[1];
+                            SumSpatialVariance[k][1, 0] += PosteriorProbability[CurrentPixelIndex,k] * SpatialDifference[1] * SpatialDifference[0];
+                            SumSpatialVariance[k][1, 1] += PosteriorProbability[CurrentPixelIndex,k] * SpatialDifference[1] * SpatialDifference[1];
+                            SumIntensityVariance[k] += PosteriorProbability[CurrentPixelIndex,k] * IntensityDifference * IntensityDifference;
                         }
                     }
                     else if (FrameMask[CurrentFrameOffset + CurrentPixelIndex] == Constants.LABEL_FOREGROUND)
@@ -733,11 +538,11 @@ namespace iCiRC.Tracking
                             SpatialDifference[0] = Convert.ToDouble(x) - GMMComponent[k].SpatialMean[0];
                             SpatialDifference[1] = Convert.ToDouble(y) - GMMComponent[k].SpatialMean[1];
                             double IntensityDifference = Convert.ToDouble(FrameIntensity[CurrentFrameOffset + CurrentPixelIndex]) - GMMComponent[k].IntensityMean;
-                            SumSpatialVariance[k][0, 0] += PosteriorProbability[CurrentPixelIndex][k] * SpatialDifference[0] * SpatialDifference[0];
-                            SumSpatialVariance[k][0, 1] += PosteriorProbability[CurrentPixelIndex][k] * SpatialDifference[0] * SpatialDifference[1];
-                            SumSpatialVariance[k][1, 0] += PosteriorProbability[CurrentPixelIndex][k] * SpatialDifference[1] * SpatialDifference[0];
-                            SumSpatialVariance[k][1, 1] += PosteriorProbability[CurrentPixelIndex][k] * SpatialDifference[1] * SpatialDifference[1];
-                            SumIntensityVariance[k] += PosteriorProbability[CurrentPixelIndex][k] * IntensityDifference * IntensityDifference;
+                            SumSpatialVariance[k][0, 0] += PosteriorProbability[CurrentPixelIndex,k] * SpatialDifference[0] * SpatialDifference[0];
+                            SumSpatialVariance[k][0, 1] += PosteriorProbability[CurrentPixelIndex,k] * SpatialDifference[0] * SpatialDifference[1];
+                            SumSpatialVariance[k][1, 0] += PosteriorProbability[CurrentPixelIndex,k] * SpatialDifference[1] * SpatialDifference[0];
+                            SumSpatialVariance[k][1, 1] += PosteriorProbability[CurrentPixelIndex,k] * SpatialDifference[1] * SpatialDifference[1];
+                            SumIntensityVariance[k] += PosteriorProbability[CurrentPixelIndex,k] * IntensityDifference * IntensityDifference;
                         }
                     }
                 }
