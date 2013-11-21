@@ -76,7 +76,9 @@ namespace HNs_Prog
                 // Thresholding
                 for (int i = 0; i < VolumeData.XNum * VolumeData.YNum; i++)
                 {
-                    if (ResultLabeling[i] > 100)
+                    if (VesselEnhancementDialog.MethodIndex == VEDialog.VEMethod.Frangi && ResultLabeling[i] > 100)
+                        ResultLabeling[i] = 0xff;
+                    else if (VesselEnhancementDialog.MethodIndex == VEDialog.VEMethod.KrissianModel && ResultLabeling[i] > 60)
                         ResultLabeling[i] = 0xff;
                     else
                         ResultLabeling[i] = 0x00;
@@ -89,8 +91,8 @@ namespace HNs_Prog
                 FilteringProcessor.FType = MorphologicalFilter.FilterType.Dilation;
                 FilteredCurrentXraySlice = FilteringProcessor.RunFiltering(ResultLabeling);
                 ResultLabeling = (byte[])FilteredCurrentXraySlice.Clone();
-                FilteredCurrentXraySlice = FilteringProcessor.RunFiltering(ResultLabeling);
-                ResultLabeling = (byte[])FilteredCurrentXraySlice.Clone();
+                //FilteredCurrentXraySlice = FilteringProcessor.RunFiltering(ResultLabeling);
+                //ResultLabeling = (byte[])FilteredCurrentXraySlice.Clone();
 
                 VolumeData.VolumeMask = new byte[VolumeData.XNum * VolumeData.YNum * VolumeData.ZNum];
                 VolumeData.VolumeMask.Initialize();
@@ -132,7 +134,8 @@ namespace HNs_Prog
             }
             else if (GMMModelDialog.ModelIndex == GMMDialog.GMMModel.PerpixelIntensity)
             {
-                // To do
+                VesselTracking tracker = new PerPixelIntensityGMMTracking(5);
+                VolumeData.VolumeMask = tracker.RunTracking(VolumeData.XNum, VolumeData.YNum, VolumeData.ZNum, VolumeData.VolumeDensity);
             }
 
             this.CheckBoxMasking.Enabled = true;
