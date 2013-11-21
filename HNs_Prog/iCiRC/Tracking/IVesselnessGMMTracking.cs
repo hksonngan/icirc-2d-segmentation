@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using ManagedMRF;
 
 namespace iCiRC.Tracking
 {
@@ -69,6 +70,7 @@ namespace iCiRC.Tracking
             {
                 ComputeVesselness(f);
                 SegmentationUsingDataCost(f);
+                SegmentationUsingGraphCut(f);
 
                 // Post-undating EM
                 for (int iter = 0; iter < EMIterNum; iter++)
@@ -310,20 +312,50 @@ namespace iCiRC.Tracking
                 else
                     FrameMask[CurrentFramePixelOffset + i] = Constants.LABEL_BACKGROUND;
             }
+        }
 
-            // SRG clustering
-            /*
-            byte[] CurrentSliceFrameMask = new byte[FramePixelNum];
-            for (int i = 0; i < FramePixelNum; i++)
-                CurrentSliceFrameMask[i] = FrameMask[CurrentFramePixelOffset + i];
-            SRGClustering ForeClustering = new SRGClustering(512 * 512);
-            ForeClustering.RunClustering(XNum, YNum, CurrentSliceFrameMask, Constants.LABEL_FOREGROUND);
-            for (int i = 0; i < FramePixelNum; i++)
+        //---------------------------------------------------------------------------
+        /** @brief Segmentation of the each frame using graph-cut algorithm
+            @author Hyunna Lee
+            @date 2013.11.12
+            @param CurrentFrameIndex : the index of the current frame
+            @todo To implement the graph-cut algorithm using ManagedMRF classes
+        */
+        //-------------------------------------------------------------------------
+        unsafe void SegmentationUsingGraphCut(int CurrentFrameIndex)
+        {
+            const int GCIterNum = 5;
+            int FramePixelNum = XNum * YNum;
+            int CurrentFramePixelOffset = CurrentFrameIndex * FramePixelNum;
+
+            double[] SmoothnessHorizontal = new double[FramePixelNum];
+            double[] SmoothnessVertical = new double[FramePixelNum];
+            SmoothnessHorizontal.Initialize();
+            SmoothnessVertical.Initialize();
+            double[] DataEnergy = BuildDataEnergyArray(CurrentFrameIndex);
+            double[] SmoothnessEnergy = BuildSmoothnessEnergyArray(CurrentFrameIndex, ref SmoothnessHorizontal, ref SmoothnessVertical);
+
+            fixed (double* BufData = DataEnergy, BufSmoothness = SmoothnessEnergy, BufHSmoothness = SmoothnessHorizontal, BufVSmoothness = SmoothnessVertical)
             {
-                if (ForeClustering.ClusterLabel[i] == Constants.LABEL_BACKGROUND)
-                    FrameMask[CurrentFramePixelOffset + i] = CurrentSliceFrameMask[i] = Constants.LABEL_BACKGROUND;
+                GraphCutWrap GraphCut = new GraphCutWrap(XNum, YNum, BufData, BufSmoothness, BufHSmoothness, BufVSmoothness, true);
+                GraphCut.Initialize();
+                GraphCut.ClearAnswer();
+
+                double Energy = GraphCut.GetTotalEnergy();
+                for (int iter = 0; iter < GCIterNum; iter++)
+                {
+                    GraphCut.OptimizeOneIteration();
+                    Energy = GraphCut.GetTotalEnergy();
+                }
+
+                for (int i = 0; i < FramePixelNum; i++)
+                {
+                    if (GraphCut.GetLabel(i) == 0)
+                        FrameMask[CurrentFramePixelOffset + i] = Constants.LABEL_BACKGROUND;
+                    else
+                        FrameMask[CurrentFramePixelOffset + i] = Constants.LABEL_FOREGROUND;
+                }
             }
-             * */
         }
 
         private void ComputeVesselness(int CurrentFrameIndex)
@@ -342,6 +374,78 @@ namespace iCiRC.Tracking
 
             for (int i = 0; i < FramePixelNum; i++)
                 FrameVesselness[CurrentFramePixelOffset + i] = Vesselness[i];
+        }
+
+        private double[] BuildDataEnergyArray(int CurrentFrameIndex)
+        {
+            const int LabelNum = 2;
+            int TotalModelNum = BackModelNum + ForeModelNum;
+            int FramePixelNum = XNum * YNum;
+            int CurrentFramePixelOffset = CurrentFrameIndex * FramePixelNum;
+
+            double[] DataCost = new double[FramePixelNum * LabelNum];
+            DataCost.Initialize();
+
+            for (int i = 0; i < FramePixelNum; i++)
+            {
+                double CurrentPixelIntensity = Convert.ToDouble(FrameIntensity[CurrentFramePixelOffset + i]);
+                // Likelihood
+                DataCost[i * LabelNum] = 0.0;
+                DataCost[i * LabelNum + 1] = 0.0;
+                for (int k = 0; k < BackModelNum; k++)
+                {
+                    double GMMLikelihood = GMMComponent[k].Weight * GMMComponent[k].GetGaussianProbability(CurrentPixelIntensity)
+                        * (1.0 - FrameVesselness[CurrentFramePixelOffset + i]);
+                    DataCost[i * LabelNum] -= Math.Log10(GMMLikelihood);
+                }
+                for (int k = BackModelNum; k < TotalModelNum; k++)
+                {
+                    double GMMLikelihood = GMMComponent[k].Weight * GMMComponent[k].GetGaussianProbability(CurrentPixelIntensity)
+                        * FrameVesselness[CurrentFramePixelOffset + i];
+                    DataCost[i * LabelNum + 1] -= Math.Log10(GMMLikelihood);
+                }
+            }
+            return DataCost;
+        }
+
+        private double[] BuildSmoothnessEnergyArray(int CurrentFrameIndex, ref double[] HSmoothness, ref double[] VSmoothness)
+        {
+            const double Lamda = 1.0;
+            const double Sigma = 50.0;
+            int TotalModelNum = BackModelNum + ForeModelNum;
+            int FramePixelNum = XNum * YNum;
+            int LabelNum = 2;
+            int CurrentFramePixelOffset = CurrentFrameIndex * FramePixelNum;
+
+            double[] SmoothnessCost = new double[LabelNum * LabelNum];
+            SmoothnessCost.Initialize();
+            SmoothnessCost[1] = SmoothnessCost[2] = 1.0;
+
+            // Horizontal 
+            for (int y = 0; y < YNum; y++)
+            {
+                for (int x = 1; x < XNum; x++)
+                {
+                    int CurrentPixelIndex = y * XNum + x;
+                    double CurrentPixelIntensity = Convert.ToDouble(FrameIntensity[CurrentFramePixelOffset + CurrentPixelIndex]);
+                    double NeighborPixelIntensity = Convert.ToDouble(FrameIntensity[CurrentFramePixelOffset + CurrentPixelIndex - 1]);
+                    double IntensityDifference = CurrentPixelIntensity - NeighborPixelIntensity;
+                    HSmoothness[CurrentPixelIndex - 1] = Lamda * Math.Exp(-(IntensityDifference * IntensityDifference) / (Sigma * Sigma));
+                }
+            }
+            // Vertical
+            for (int y = 1; y < YNum; y++)
+            {
+                for (int x = 0; x < XNum; x++)
+                {
+                    int CurrentPixelIndex = y * XNum + x;
+                    double CurrentPixelIntensity = Convert.ToDouble(FrameIntensity[CurrentFramePixelOffset + CurrentPixelIndex]);
+                    double NeighborPixelIntensity = Convert.ToDouble(FrameIntensity[CurrentFramePixelOffset + CurrentPixelIndex - XNum]);
+                    double IntensityDifference = CurrentPixelIntensity - NeighborPixelIntensity;
+                    VSmoothness[CurrentPixelIndex - XNum] = Lamda * Math.Exp(-(IntensityDifference * IntensityDifference) / (Sigma * Sigma));
+                }
+            }
+            return SmoothnessCost;
         }
     }
 }
