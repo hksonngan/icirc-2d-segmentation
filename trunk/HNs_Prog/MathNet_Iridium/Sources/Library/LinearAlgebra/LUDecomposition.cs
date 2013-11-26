@@ -3,7 +3,7 @@
 // http://mathnet.opensourcedotnet.info
 //
 // Copyright (c) 2004-2008, Joannes Vermorel, http://www.vermorel.com
-//                          Christoph Rüegg, http://christoph.ruegg.name
+//                          Christoph R?gg, http://christoph.ruegg.name
 //
 // Contribution: The MathWorks and NIST [2000]
 //

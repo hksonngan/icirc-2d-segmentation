@@ -39,13 +39,14 @@
             this.GroupBoxPostProcessing = new System.Windows.Forms.GroupBox();
             this.CheckBoxMedianFiltering = new System.Windows.Forms.CheckBox();
             this.CheckBoxAllFrame = new System.Windows.Forms.CheckBox();
+            this.RadioButtonFrangiKrissian = new System.Windows.Forms.RadioButton();
             this.GroupBoxPreProcessing.SuspendLayout();
             this.GroupBoxPostProcessing.SuspendLayout();
             this.SuspendLayout();
             // 
             // ButtonRun
             // 
-            this.ButtonRun.Location = new System.Drawing.Point(12, 227);
+            this.ButtonRun.Location = new System.Drawing.Point(12, 281);
             this.ButtonRun.Name = "ButtonRun";
             this.ButtonRun.Size = new System.Drawing.Size(530, 23);
             this.ButtonRun.TabIndex = 0;
@@ -114,21 +115,22 @@
             this.RadioButtonTruc.UseVisualStyleBackColor = true;
             this.RadioButtonTruc.CheckedChanged += new System.EventHandler(this.RadioButtonCheckedChanged);
             // 
-            // CheckBoxAllFrame
+            // RadioButtonFrangiKrissian
             // 
-            this.CheckBoxAllFrame.AutoSize = true;
-            this.CheckBoxAllFrame.Location = new System.Drawing.Point(13, 132);
-            this.CheckBoxAllFrame.Name = "CheckBoxAllFrame";
-            this.CheckBoxAllFrame.Size = new System.Drawing.Size(81, 16);
-            this.CheckBoxAllFrame.TabIndex = 8;
-            this.CheckBoxAllFrame.Text = "All frames";
-            this.CheckBoxAllFrame.UseVisualStyleBackColor = true;
-            this.CheckBoxAllFrame.CheckedChanged += new System.EventHandler(this.CheckBoxCheckedChanged);
+            this.RadioButtonFrangiKrissian.AutoSize = true;
+            this.RadioButtonFrangiKrissian.Location = new System.Drawing.Point(12, 127);
+            this.RadioButtonFrangiKrissian.Name = "RadioButtonFrangiKrissian";
+            this.RadioButtonFrangiKrissian.Size = new System.Drawing.Size(118, 16);
+            this.RadioButtonFrangiKrissian.TabIndex = 9;
+            this.RadioButtonFrangiKrissian.TabStop = true;
+            this.RadioButtonFrangiKrissian.Text = "Frangi + Krissian";
+            this.RadioButtonFrangiKrissian.UseVisualStyleBackColor = true;
+            this.RadioButtonFrangiKrissian.CheckedChanged += new System.EventHandler(this.RadioButtonCheckedChanged);
             // 
             // GroupBoxPreProcessing
             // 
             this.GroupBoxPreProcessing.Controls.Add(this.CheckBoxHomomorphicFiltering);
-            this.GroupBoxPreProcessing.Location = new System.Drawing.Point(13, 163);
+            this.GroupBoxPreProcessing.Location = new System.Drawing.Point(13, 217);
             this.GroupBoxPreProcessing.Name = "GroupBoxPreProcessing";
             this.GroupBoxPreProcessing.Size = new System.Drawing.Size(255, 50);
             this.GroupBoxPreProcessing.TabIndex = 6;
@@ -151,7 +153,7 @@
             // GroupBoxPostProcessing
             // 
             this.GroupBoxPostProcessing.Controls.Add(this.CheckBoxMedianFiltering);
-            this.GroupBoxPostProcessing.Location = new System.Drawing.Point(288, 163);
+            this.GroupBoxPostProcessing.Location = new System.Drawing.Point(288, 217);
             this.GroupBoxPostProcessing.Name = "GroupBoxPostProcessing";
             this.GroupBoxPostProcessing.Size = new System.Drawing.Size(255, 50);
             this.GroupBoxPostProcessing.TabIndex = 7;
@@ -171,11 +173,23 @@
             this.CheckBoxMedianFiltering.UseVisualStyleBackColor = true;
             this.CheckBoxMedianFiltering.CheckedChanged += new System.EventHandler(this.CheckBoxCheckedChanged);
             // 
+            // CheckBoxAllFrame
+            // 
+            this.CheckBoxAllFrame.AutoSize = true;
+            this.CheckBoxAllFrame.Location = new System.Drawing.Point(13, 186);
+            this.CheckBoxAllFrame.Name = "CheckBoxAllFrame";
+            this.CheckBoxAllFrame.Size = new System.Drawing.Size(81, 16);
+            this.CheckBoxAllFrame.TabIndex = 8;
+            this.CheckBoxAllFrame.Text = "All frames";
+            this.CheckBoxAllFrame.UseVisualStyleBackColor = true;
+            this.CheckBoxAllFrame.CheckedChanged += new System.EventHandler(this.CheckBoxCheckedChanged);
+            // 
             // VEDialog
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(554, 262);
+            this.ClientSize = new System.Drawing.Size(554, 319);
+            this.Controls.Add(this.RadioButtonFrangiKrissian);
             this.Controls.Add(this.CheckBoxAllFrame);
             this.Controls.Add(this.GroupBoxPostProcessing);
             this.Controls.Add(this.GroupBoxPreProcessing);
@@ -210,5 +224,6 @@
         private System.Windows.Forms.GroupBox GroupBoxPostProcessing;
         private System.Windows.Forms.CheckBox CheckBoxMedianFiltering;
         private System.Windows.Forms.CheckBox CheckBoxAllFrame;
+        private System.Windows.Forms.RadioButton RadioButtonFrangiKrissian;
     }
 }

@@ -7,16 +7,15 @@ namespace iCiRC
 {
     public class Clustering
     {
-        public enum DistanceCriterion { Intensity, Position };
-        public DistanceCriterion CriterionType;
         public int[] ClusterLabel;
         protected int XNum, YNum, LabelNum;
         protected byte[] ImageMask;
         protected byte ObjectLabel;
+        protected int DataDimension;
 
         public Clustering()
         {
-            CriterionType = DistanceCriterion.Intensity;
+            DataDimension = 1;
         }
     }
 }
