@@ -11,7 +11,7 @@ namespace HNs_Prog.Dialog
 {
     public partial class VEDialog : Form
     {
-        public enum VEMethod { Frangi, KrissianModel, KrissianFlux, ManniesingVED, TrucDFB };
+        public enum VEMethod { Frangi, KrissianModel, KrissianFlux, ManniesingVED, TrucDFB, FrangiAndKrissianModel };
         public VEMethod MethodIndex;
         public bool CheckedHomohorphicFiltering;
         public bool CheckedMedianFiltering;
@@ -43,6 +43,8 @@ namespace HNs_Prog.Dialog
                 MethodIndex = VEMethod.ManniesingVED;
             else if (RadioButtonTruc.Checked)
                 MethodIndex = VEMethod.TrucDFB;
+            else if (RadioButtonFrangiKrissian.Checked)
+                MethodIndex = VEMethod.FrangiAndKrissianModel;
         }
 
         private void CheckBoxCheckedChanged(object sender, EventArgs e)

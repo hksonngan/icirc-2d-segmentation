@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using MathNet.Numerics.LinearAlgebra;
 
 namespace iCiRC.Tracking
 {
@@ -52,7 +53,7 @@ namespace iCiRC.Tracking
             FrameMask.Initialize();
 
             const int EMIterNum = 5;
-            const int StartFrameIndex = 0;
+            const int StartFrameIndex = 20;
 
             ProgressWindow winProgress = new ProgressWindow("Vessel tracking...", 0, FrameNum);
             winProgress.Show();
@@ -68,7 +69,7 @@ namespace iCiRC.Tracking
             winProgress.Increment(1);
 
             // For each frame 
-            for (int f = StartFrameIndex + 1; f < FrameNum; f++)
+            for (int f = StartFrameIndex + 1; f < 40; f++)
             {
                 // Pre-updating EM
                 /*
@@ -174,12 +175,18 @@ namespace iCiRC.Tracking
             byte[] CurrentSliceFrameMask = new byte[FramePixelNum];
             for (int i = 0; i < FramePixelNum; i++)
                 CurrentSliceFrameMask[i] = FrameMask[CurrentFrameOffset + i];
+            Vector[] CurrentSliceFeatureMask = new Vector[FramePixelNum];
+            for (int i = 0; i < FramePixelNum; i++)
+            {
+                CurrentSliceFeatureMask[i] = new Vector(1);
+                CurrentSliceFeatureMask[i][0] = Convert.ToDouble(FrameIntensity[CurrentFrameOffset + i]);
+            }
 
             // K-means clustering
-            KmeansClustering BackClustering = new KmeansClustering();
-            BackModelNum = BackClustering.RunClustering(XNum, YNum, CurrentSliceFrameMask, Constants.LABEL_BACKGROUND);
-            KmeansClustering ForeClustering = new KmeansClustering();
-            ForeModelNum = ForeClustering.RunClustering(XNum, YNum, CurrentSliceFrameMask, Constants.LABEL_FOREGROUND);
+            KmeansClustering BackClustering = new KmeansClustering(XNum, YNum, CurrentSliceFrameMask, Constants.LABEL_BACKGROUND);
+            BackModelNum = BackClustering.RunClustering(1, CurrentSliceFeatureMask, 100.0);
+            KmeansClustering ForeClustering = new KmeansClustering(XNum, YNum, CurrentSliceFrameMask, Constants.LABEL_FOREGROUND);
+            ForeModelNum = ForeClustering.RunClustering(1, CurrentSliceFeatureMask, 100.0);
             int TotalModelNum = BackModelNum + ForeModelNum;
             GMMComponent = new IntensityGaussianModel[TotalModelNum];
             for (int i = 0; i < TotalModelNum; i++)

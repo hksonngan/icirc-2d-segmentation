@@ -41,7 +41,7 @@ namespace HNs_Prog
             if (VesselEnhancementDialog.MethodIndex == VEDialog.VEMethod.Frangi)
             {
                 const int ScaleNum = 4;
-                double[] ScaleArray = {2.12, 2.72, 3.5 , 4.0};
+                double[] ScaleArray = {2.12, 2.72, 3.5, 4.0};
 
                 ResultMap = map.RunFrangiMethod2D(VolumeData.XNum, VolumeData.YNum, CurrentXraySlice, ScaleNum, ScaleArray);
                 for (int i = 0; i < VolumeData.XNum * VolumeData.YNum; i++)
@@ -64,6 +64,20 @@ namespace HNs_Prog
                 ResultMap = map.RunKrissianFluxMethod2D(VolumeData.XNum, VolumeData.YNum, CurrentXraySlice, IterNum);
                 for (int i = 0; i < VolumeData.XNum * VolumeData.YNum; i++)
                     CurrentXraySlice[i] = Convert.ToByte(ResultMap[i]);
+            }
+            else if (VesselEnhancementDialog.MethodIndex == VEDialog.VEMethod.FrangiAndKrissianModel)
+            {
+                const int ScaleNum = 3;
+                double[] ScaleArray = { 2.5, 3.0, 3.5 };
+
+                ResultMap = map.RunFrangiMethod2D(VolumeData.XNum, VolumeData.YNum, CurrentXraySlice, ScaleNum, ScaleArray);
+
+                ScaleArray[0] = 3.0; ScaleArray[1] = 4.0; ScaleArray[2] = 5.0; 
+                double[] KrissianResultMap = new double[VolumeData.XNum * VolumeData.YNum];
+                KrissianResultMap = map.RunKrissianModelMethod2D(VolumeData.XNum, VolumeData.YNum, CurrentXraySlice, ScaleNum, ScaleArray);
+
+                for (int i = 0; i < VolumeData.XNum * VolumeData.YNum; i++)
+                    CurrentXraySlice[i] = Convert.ToByte(Math.Max(ResultMap[i], KrissianResultMap[i])  * 255.0);
             }
 
             // Post-proccesing

@@ -104,9 +104,17 @@ namespace iCiRC.Tracking
                     FrameMask[CurrentFrameOffset + i] = CurrentSliceFrameMask[i] = Constants.LABEL_BACKGROUND;
             }
 
-            KmeansClustering BackClustering = new KmeansClustering();
-            BackClustering.CriterionType = Clustering.DistanceCriterion.Position;
-            BackModelNum = BackClustering.RunClustering(XNum, YNum, CurrentSliceFrameMask, Constants.LABEL_BACKGROUND);
+            Vector[] CurrentSliceFeatureMask = new Vector[FramePixelNum];
+            for (int i = 0; i < FramePixelNum; i++)
+            {
+                CurrentSliceFeatureMask[i] = new Vector(2);
+                CurrentSliceFeatureMask[i][0] = Convert.ToDouble(i % XNum);
+                CurrentSliceFeatureMask[i][1] = Convert.ToDouble(i / XNum);
+            }
+
+            // K-means clustering
+            KmeansClustering BackClustering = new KmeansClustering(XNum, YNum, CurrentSliceFrameMask, Constants.LABEL_BACKGROUND);
+            BackModelNum = BackClustering.RunClustering(1, CurrentSliceFeatureMask, 128);
 
             int TotalModelNum = BackModelNum + ForeModelNum;
             GMMComponent = new SpatialColorGaussianModel[TotalModelNum];

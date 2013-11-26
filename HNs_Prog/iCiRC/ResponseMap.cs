@@ -77,6 +77,8 @@ namespace iCiRC
                     }
                 }
             }
+
+            /*
             double MaxVesselness = 0.0;
             for (int i = 0; i < PixelNum; i++)
                 MaxVesselness = Math.Max(MaxVesselness, Vesselness[i]);
@@ -84,6 +86,7 @@ namespace iCiRC
                 return Vesselness;
             for (int i = 0; i < PixelNum; i++)
                 Vesselness[i] /= MaxVesselness;
+             * */
 
             return Vesselness;
         }
@@ -159,7 +162,7 @@ namespace iCiRC
                         double FilterResponse = Math.Min(Math.Abs(OrthogonalResponse1), Math.Abs(OrthogonalResponse2));
 
                         // Get the maximum filter response
-                        Response[y * XNum + x] = Math.Max(Response[y * XNum + x], FilterResponse * Scale[s]);
+                        Response[y * XNum + x] = Math.Max(Response[y * XNum + x], FilterResponse * Math.Sqrt(Scale[s]));
                     }
                 }
             }
