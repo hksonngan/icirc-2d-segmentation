@@ -50,7 +50,7 @@ namespace HNs_Prog
             else if (VesselEnhancementDialog.MethodIndex == VEDialog.VEMethod.KrissianModel)
             {
                 const int ScaleNum = 5;
-                double[] ScaleArray = { 1.28, 1.65, 2.12, 2.72, 3.5 };
+                double[] ScaleArray = { 2.12, 2.72, 3.5, 4.0, 5.0 };
                 //double[] ScaleArray = { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0 };
                 //double[] ScaleArray = { 0.7, 1.4, 2.1, 2.8, 3.5, 4.2 };
 
@@ -67,17 +67,16 @@ namespace HNs_Prog
             }
             else if (VesselEnhancementDialog.MethodIndex == VEDialog.VEMethod.FrangiAndKrissianModel)
             {
-                const int ScaleNum = 3;
-                double[] ScaleArray = { 2.5, 3.0, 3.5 };
-
-                ResultMap = map.RunFrangiMethod2D(VolumeData.XNum, VolumeData.YNum, CurrentXraySlice, ScaleNum, ScaleArray);
-
-                ScaleArray[0] = 3.0; ScaleArray[1] = 4.0; ScaleArray[2] = 5.0; 
-                double[] KrissianResultMap = new double[VolumeData.XNum * VolumeData.YNum];
-                KrissianResultMap = map.RunKrissianModelMethod2D(VolumeData.XNum, VolumeData.YNum, CurrentXraySlice, ScaleNum, ScaleArray);
+                const int ScaleNum = 5;
+                double[] ScaleArray = { 2.12, 2.72, 3.5, 4.5, 6.0 };
+                ResultMap = map.RunFrangiAndKrissianMethod2D(VolumeData.XNum, VolumeData.YNum, CurrentXraySlice, ScaleNum, ScaleArray);
+                
+                MorphologicalFilter FilteringProcessor = new MorphologicalFilter(VolumeData.XNum, VolumeData.YNum);
+                FilteringProcessor.FType = MorphologicalFilter.FilterType.Median;
+                double[] FilteredCurrentXraySlice = FilteringProcessor.RunFiltering(ResultMap);
 
                 for (int i = 0; i < VolumeData.XNum * VolumeData.YNum; i++)
-                    CurrentXraySlice[i] = Convert.ToByte(Math.Max(ResultMap[i], KrissianResultMap[i])  * 255.0);
+                    CurrentXraySlice[i] = Convert.ToByte(FilteredCurrentXraySlice[i] * 255.0);
             }
 
             // Post-proccesing
