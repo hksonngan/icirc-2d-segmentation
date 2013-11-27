@@ -57,5 +57,39 @@ namespace iCiRC
 
             return OutputFrameIntensity;
         }
+
+        public double[] RunFiltering(double[] Intensity)
+        {
+            double[] OutputFrameMap = new double[XNum * YNum];
+            OutputFrameMap = (double[])Intensity.Clone();
+
+            for (int y = 1; y < YNum - 1; y++)
+            {
+                for (int x = 1; x < XNum - 1; x++)
+                {
+                    int CurrentPixelIndex = y * XNum + x;
+                    double[] NeighborIntensity = new double[9];
+                    NeighborIntensity[0] = Intensity[CurrentPixelIndex - XNum - 1];
+                    NeighborIntensity[1] = Intensity[CurrentPixelIndex - XNum];
+                    NeighborIntensity[2] = Intensity[CurrentPixelIndex - XNum + 1];
+                    NeighborIntensity[3] = Intensity[CurrentPixelIndex - 1];
+                    NeighborIntensity[4] = Intensity[CurrentPixelIndex];
+                    NeighborIntensity[5] = Intensity[CurrentPixelIndex + 1];
+                    NeighborIntensity[6] = Intensity[CurrentPixelIndex + XNum - 1];
+                    NeighborIntensity[7] = Intensity[CurrentPixelIndex + XNum];
+                    NeighborIntensity[8] = Intensity[CurrentPixelIndex + XNum + 1];
+
+                    Array.Sort(NeighborIntensity);
+                    if (FType == FilterType.Median)
+                        OutputFrameMap[CurrentPixelIndex] = NeighborIntensity[4];
+                    else if (FType == FilterType.Dilation)
+                        OutputFrameMap[CurrentPixelIndex] = NeighborIntensity[8];
+                    else if (FType == FilterType.Erosion)
+                        OutputFrameMap[CurrentPixelIndex] = NeighborIntensity[0];
+                }
+            }
+
+            return OutputFrameMap;
+        }
     }
 }
