@@ -138,6 +138,52 @@ namespace iCiRC.Tracking
     }
 
     //---------------------------------------------------------------------------
+    /** @class IFKGaussianModel
+        @author Hyunna Lee
+        @date 2013.11.28
+        @brief GMM Model parameters for intensity component
+    */
+    //-------------------------------------------------------------------------
+    class IFKGaussianModel
+    {
+        public Vector IVesselnessMean;      ///< Mean of intensity-vesselness component (I, V)
+        public Matrix IVesselnessCoVar;     ///< Covariance matrix of intensity-vesselness component (II, IV; VI, VV)
+        public double Weight;               ///< Weight of this GMM component in the mixture model
+
+        public IFKGaussianModel()
+        {
+            IVesselnessMean = new Vector(3);
+            IVesselnessCoVar = new Matrix(3, 3);
+            Weight = 0.0;
+        }
+
+        //---------------------------------------------------------------------------
+        /** @brief Gaussian probability density function for bivariate
+            @author Hyunna Lee
+            @date 2013.11.28
+            @param Intensity : intensity component of the current instant 
+            @param Frangi : Frangi's vesselness component of the current instant
+            @param Krissian : Krissian's vesselness component of the current instant 
+            @return Probability of the current instant
+        */
+        //-------------------------------------------------------------------------
+        public double GetGaussianProbability(double Intensity, double Frangi, double Krissian)
+        {
+            Vector DifferenceVector = new Vector(3);
+            DifferenceVector[0] = Intensity - IVesselnessMean[0];
+            DifferenceVector[1] = Frangi - IVesselnessMean[1];
+            DifferenceVector[2] = Krissian - IVesselnessMean[2];
+            Matrix InvCoVar = new Matrix(3, 3);
+            InvCoVar = IVesselnessCoVar.Inverse();
+            double det = IVesselnessCoVar.Determinant();
+            double Difference = DifferenceVector[0] * (DifferenceVector[0] * InvCoVar[0, 0] + DifferenceVector[1] * InvCoVar[1, 0] + DifferenceVector[2] * InvCoVar[2, 0])
+                              + DifferenceVector[1] * (DifferenceVector[0] * InvCoVar[0, 1] + DifferenceVector[1] * InvCoVar[1, 1] + DifferenceVector[2] * InvCoVar[2, 1])
+                              + DifferenceVector[2] * (DifferenceVector[0] * InvCoVar[0, 2] + DifferenceVector[1] * InvCoVar[1, 2] + DifferenceVector[2] * InvCoVar[2, 2]);
+            return Math.Exp(-Difference / 2.0) / (2.0 * Math.PI * Math.Sqrt(det));
+        }
+    }
+
+    //---------------------------------------------------------------------------
     /** @class SpatialColorGaussianModel
         @author Hyunna Lee
         @date 2013.11.07
