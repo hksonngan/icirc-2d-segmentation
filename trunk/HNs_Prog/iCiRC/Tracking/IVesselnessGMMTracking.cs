@@ -437,7 +437,7 @@ namespace iCiRC.Tracking
                 CurrentXraySlice[i] = FrameMask[CurrentFrameOffset + i];
 
             ConnectedComponentLabeling CCLProcessor = new ConnectedComponentLabeling(XNum, YNum);
-            int LabelNum = CCLProcessor.RunCCL(CurrentXraySlice, MinSize);
+            int LabelNum = CCLProcessor.RunCCL(CurrentXraySlice, MinSize, FramePixelNum);
             for (int i = 0; i < FramePixelNum; i++)
             {
                 if (CCLProcessor.OutputFrameMask[i] == Constants.LABEL_BACKGROUND)

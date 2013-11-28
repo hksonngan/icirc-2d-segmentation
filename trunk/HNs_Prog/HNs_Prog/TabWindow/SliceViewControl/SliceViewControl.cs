@@ -199,18 +199,16 @@ namespace HNs_Prog
                 int CurrentSliceOffset = CurrentSliceIndex * VolumeData.YNum * VolumeData.XNum;
                 for (int i = 0; i < VolumeData.YNum * VolumeData.XNum; i++)
                 {
-                    if (VolumeData.VolumeMask[CurrentSliceOffset + i] == 0x01)
-                        PixelArray[i] = (uint)Color.Blue.ToArgb();
-                    else if (VolumeData.VolumeMask[CurrentSliceOffset + i] == 0x02)
-                        PixelArray[i] = (uint)Color.Green.ToArgb();
-                    else if (VolumeData.VolumeMask[CurrentSliceOffset + i] == 0x03)
-                        PixelArray[i] = (uint)Color.Yellow.ToArgb();
-                    else if (VolumeData.VolumeMask[CurrentSliceOffset + i] == 0x04)
-                        PixelArray[i] = (uint)Color.Red.ToArgb();
-                    else if (VolumeData.VolumeMask[CurrentSliceOffset + i] == 0x05)
-                        PixelArray[i] = (uint)Color.Beige.ToArgb();
-                    else if (VolumeData.VolumeMask[CurrentSliceOffset + i] == 0xff)
-                        PixelArray[i] = (uint)Color.Yellow.ToArgb();
+                    if (VolumeData.VolumeMask[CurrentSliceOffset + i] == 0xff)
+                    {
+                        CurrentIntensity = WindowFunction.ConvertDensityToIntensity(DensityCurrentSlice[i]);
+                        Color MaskingColor = Color.Pink;
+                        int NewR = Convert.ToInt32(ColorLUT[CurrentIntensity].R * 0.75 + MaskingColor.R * 0.25);
+                        int NewG = Convert.ToInt32(ColorLUT[CurrentIntensity].G * 0.75 + MaskingColor.G * 0.25);
+                        int NewB = Convert.ToInt32(ColorLUT[CurrentIntensity].B * 0.75 + MaskingColor.B * 0.25);
+                        Color BlendedColor = Color.FromArgb(NewR, NewG, NewB);
+                        PixelArray[i] = (uint)BlendedColor.ToArgb();
+                    }
                 }
             }
             TextureSliceImage.UnlockRectangle(0);

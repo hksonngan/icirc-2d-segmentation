@@ -18,7 +18,7 @@ namespace iCiRC
             LabelNum = 0;
         }
 
-        public int RunCCL(byte[] InputMask, int MinSize)
+        public int RunCCL(byte[] InputMask, int MinSize, int MaxSize)
         {
             InputFrameMask = InputMask;
             LabelingBoard = new int[XNum, YNum];
@@ -67,7 +67,7 @@ namespace iCiRC
             for (int i = 0; i < Patterns.Count; i++)
             {
                 int CurrentKey = Patterns.Keys.ElementAt(i);
-                if (Patterns[CurrentKey].Count > MinSize)
+                if (Patterns[CurrentKey].Count > MinSize && Patterns[CurrentKey].Count < MaxSize)
                 {
                     LabelNum++;
                     for (int j = 0; j < Patterns[CurrentKey].Count; j++)
@@ -82,6 +82,16 @@ namespace iCiRC
         {
             var neighboringLabels = new List<int>();
 
+            if (CurrentPixelX > 0 && LabelingBoard[CurrentPixelX - 1, CurrentPixelY] != 0)
+                neighboringLabels.Add(LabelingBoard[CurrentPixelX - 1, CurrentPixelY]);
+            if (CurrentPixelX < XNum - 1 && LabelingBoard[CurrentPixelX + 1, CurrentPixelY] != 0)
+                neighboringLabels.Add(LabelingBoard[CurrentPixelX + 1, CurrentPixelY]);
+            if (CurrentPixelY > 0 && LabelingBoard[CurrentPixelX, CurrentPixelY - 1] != 0)
+                neighboringLabels.Add(LabelingBoard[CurrentPixelX, CurrentPixelY - 1]);
+            if (CurrentPixelY < YNum - 1 && LabelingBoard[CurrentPixelX, CurrentPixelY + 1] != 0)
+                neighboringLabels.Add(LabelingBoard[CurrentPixelX, CurrentPixelY + 1]);
+
+            /*
             for (int y = CurrentPixelY - 1; y <= CurrentPixelY + 1 && y < YNum; y++)
             {
                 for (int x = CurrentPixelX - 1; x <= CurrentPixelX + 2 && x < XNum; x++)
@@ -90,6 +100,7 @@ namespace iCiRC
                         neighboringLabels.Add(LabelingBoard[x, y]);
                 }
             }
+             */
 
             return neighboringLabels;
         }

@@ -61,7 +61,7 @@ namespace iCiRC.Tracking
             // For the first frame (Post-updating)
             ComputeVesselness(StartFrameIndex);
             SegmentationUsingVesselnessThresholding(StartFrameIndex);
-            PostProcessingUsingCCL(StartFrameIndex, 20);
+            PostProcessingUsingCCL(StartFrameIndex, 40);
             InitializeGMMModelParameters(StartFrameIndex);
             for (int iter = 0; iter < EMIterNum; iter++)        // EM interation
             {
@@ -75,7 +75,7 @@ namespace iCiRC.Tracking
             {
                 ComputeVesselness(f);
                 SegmentationUsingDataCost(f);
-                PostProcessingUsingCCL(f, 20);
+                PostProcessingUsingCCL(f, 40);
                 //SegmentationUsingGraphCut(f);
 
                 // Post-undating EM
@@ -362,7 +362,7 @@ namespace iCiRC.Tracking
                         double ForeLikelihood = 0.0;
                         for (int k = 0; k < BackModelNum; k++)
                         {
-                            //if (GMMComponent[k].IVesselnessMean[1] < 255.0 * 0.3)
+                            //if (GMMComponent[k].IVesselnessMean[1] < 255.0 * 0.2 && GMMComponent[k].IVesselnessMean[2] < 255.0 * 0.2)
                             //{
                                 double GMMLikelihood = GMMComponent[k].Weight * GMMComponent[k].GetGaussianProbability(CurrentPixelIntensity, CurrentPixelFrangi, CurrentPixelKrissian);
                                 BackLikelihood += GMMLikelihood * BackPriorProbability;
@@ -464,13 +464,28 @@ namespace iCiRC.Tracking
             for (int i = 0; i < FramePixelNum; i++)
                 CurrentXraySlice[i] = FrameMask[CurrentFrameOffset + i];
 
+            // CCL
             ConnectedComponentLabeling CCLProcessor = new ConnectedComponentLabeling(XNum, YNum);
-            int LabelNum = CCLProcessor.RunCCL(CurrentXraySlice, MinSize);
+            int LabelNum = CCLProcessor.RunCCL(CurrentXraySlice, MinSize, FramePixelNum);
             for (int i = 0; i < FramePixelNum; i++)
             {
                 if (CCLProcessor.OutputFrameMask[i] == Constants.LABEL_BACKGROUND)
+                {
                     FrameMask[CurrentFrameOffset + i] = Constants.LABEL_BACKGROUND;
+                    CurrentXraySlice[i] = Constants.LABEL_FOREGROUND;
+                }
                 else
+                {
+                    FrameMask[CurrentFrameOffset + i] = Constants.LABEL_FOREGROUND;
+                    CurrentXraySlice[i] = Constants.LABEL_BACKGROUND;
+                }
+            }
+
+            // Hole-filling
+            LabelNum = CCLProcessor.RunCCL(CurrentXraySlice, 0, 30);
+            for (int i = 0; i < FramePixelNum; i++)
+            {
+                if (CCLProcessor.OutputFrameMask[i] != Constants.LABEL_BACKGROUND)
                     FrameMask[CurrentFrameOffset + i] = Constants.LABEL_FOREGROUND;
             }
         }
