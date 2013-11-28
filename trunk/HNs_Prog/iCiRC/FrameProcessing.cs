@@ -9,9 +9,9 @@ namespace iCiRC
     {
         protected int XNum, YNum;
         protected byte[] InputFrameIntensity;
-        protected byte[] OutputFrameIntensity;
+        public byte[] OutputFrameIntensity;
         protected byte[] InputFrameMask;
-        protected byte[] OutputFrameMask;
+        public byte[] OutputFrameMask;
 
         public FrameProcessing()
         {
