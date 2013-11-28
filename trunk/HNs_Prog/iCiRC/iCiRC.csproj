@@ -80,6 +80,7 @@
     <Compile Include="OpenMPStyleThread.cs" />
     <Compile Include="PerPixelIntensityGMMTracking.cs" />
     <Compile Include="SRGClustering.cs" />
+    <Compile Include="Tracking\IFKGMMTracking.cs" />
     <Compile Include="Tracking\IVesselnessGMMTracking.cs" />
     <Compile Include="Tracking\IntensityGMMTracking.cs" />
     <Compile Include="KmeansClustering.cs" />

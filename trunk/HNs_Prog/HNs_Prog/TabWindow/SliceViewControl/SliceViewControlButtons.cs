@@ -137,8 +137,10 @@ namespace HNs_Prog
             }
             else if (GMMModelDialog.ModelIndex == GMMDialog.GMMModel.SCOriginal)
             {
-                VesselTracking tracker = new SCOriginalGMMTracking();
+                VesselTracking tracker = new IFKGMMTracking();
                 VolumeData.VolumeMask = tracker.RunTracking(VolumeData.XNum, VolumeData.YNum, VolumeData.ZNum, VolumeData.VolumeDensity);
+                //VesselTracking tracker = new SCOriginalGMMTracking();
+                //VolumeData.VolumeMask = tracker.RunTracking(VolumeData.XNum, VolumeData.YNum, VolumeData.ZNum, VolumeData.VolumeDensity);
             }
             else if (GMMModelDialog.ModelIndex == GMMDialog.GMMModel.SIFrangi)
             {
