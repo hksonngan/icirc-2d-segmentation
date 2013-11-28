@@ -190,9 +190,9 @@ namespace iCiRC
                 return null;
 
             // Result buffer initialization
-            int PixelNum = XNum * YNum;
-            double[] Vesselness = new double[PixelNum];
+            double[] Vesselness = new double[XNum * YNum];
             Vesselness.Initialize();
+            int PixelNum = XNum * YNum;
             const double alpha = 0.5, beta = 1.5, gamma = 0.2, EdgeThreshold = 50.0;
             double Tau = Math.Sqrt(3.0);
 
@@ -213,63 +213,69 @@ namespace iCiRC
                 GaussianHessianFilters[2].GenerateGaussianHessianFilter2D(Scale[s], 15, 1, 1);
 
                 // For each pixel
-                for (int y = 0; y < YNum; y++)
-                {
-                    for (int x = 0; x < XNum; x++)
-                    {
-                        // Get Hessian matrix
-                        Matrix HessianMatrix = new Matrix(2, 2);
-                        HessianMatrix[0, 0] = GaussianHessianFilters[0].Run2D(XNum, YNum, ImageIntensity, y * XNum + x);
-                        HessianMatrix[0, 1] =
-                        HessianMatrix[1, 0] = GaussianHessianFilters[1].Run2D(XNum, YNum, ImageIntensity, y * XNum + x);
-                        HessianMatrix[1, 1] = GaussianHessianFilters[2].Run2D(XNum, YNum, ImageIntensity, y * XNum + x);
-
-                        EigenvalueDecomposition EigenDecom = new EigenvalueDecomposition(HessianMatrix);
-                        double lambda1, lambda2;
-                        Vector OrthogonalVector = new Vector(2);
-                        if (EigenDecom.RealEigenvalues[0] < Math.Abs(EigenDecom.RealEigenvalues[1]))
+                //using (new OpenMPStyleThread(0, YNum, 4,
+                //    delegate(int start, int end)
+                //    {
+                        for (int y = 0; y < YNum; y++)
                         {
-                            lambda1 = EigenDecom.RealEigenvalues[0];
-                            lambda2 = EigenDecom.RealEigenvalues[1];
-                            OrthogonalVector[0] = EigenDecom.EigenVectors[0, 1];
-                            OrthogonalVector[1] = EigenDecom.EigenVectors[1, 1];
-                        }
-                        else
-                        {
-                            lambda1 = EigenDecom.RealEigenvalues[1];
-                            lambda2 = EigenDecom.RealEigenvalues[0];
-                            OrthogonalVector[0] = EigenDecom.EigenVectors[0, 0];
-                            OrthogonalVector[1] = EigenDecom.EigenVectors[1, 0];
-                        }
-                        double RatioA = Math.Abs(lambda1) / Math.Abs(lambda2);
-                        double Structureness = Math.Sqrt(lambda1 * lambda1 + lambda2 * lambda2);
-                        OrthogonalVector = OrthogonalVector.Normalize();    // Get the unitary vector d, which is orthogonal to D
+                            for (int x = 0; x < XNum; x++)
+                            {
+                                // Get Hessian matrix
+                                int CurrentPixelIndex = y * XNum + x;
 
-                        double FrangiVesselness = 0.0;
-                        if (lambda2 > 0.0)
-                            FrangiVesselness = Math.Exp(-(RatioA * RatioA) / (2 * alpha * alpha)) * (1 - Math.Exp(-(Structureness * Structureness) / (2 * beta * beta)));
-                        Vesselness[y * XNum + x] = Math.Max(FrangiVesselness, Vesselness[y * XNum + x]);
+                                Matrix HessianMatrix = new Matrix(2, 2);
+                                HessianMatrix[0, 0] = GaussianHessianFilters[0].Run2D(XNum, YNum, ImageIntensity, CurrentPixelIndex);
+                                HessianMatrix[0, 1] =
+                                HessianMatrix[1, 0] = GaussianHessianFilters[1].Run2D(XNum, YNum, ImageIntensity, CurrentPixelIndex);
+                                HessianMatrix[1, 1] = GaussianHessianFilters[2].Run2D(XNum, YNum, ImageIntensity, CurrentPixelIndex);
 
-                        // Get the filter response R(sigma, voxel)
-                        Vector GradientVector = new Vector(2);
-                        int OrthogonalPixelX = Convert.ToInt32(Convert.ToDouble(x) + Tau * Scale[s] * OrthogonalVector[0] + 0.5);
-                        int OrthogonalPixelY = Convert.ToInt32(Convert.ToDouble(y) + Tau * Scale[s] * OrthogonalVector[1] + 0.5);
-                        GradientVector[0] = GaussianGradientFilters[0].Run2D(XNum, YNum, ImageIntensity, OrthogonalPixelY * XNum + OrthogonalPixelX);
-                        GradientVector[1] = GaussianGradientFilters[1].Run2D(XNum, YNum, ImageIntensity, OrthogonalPixelY * XNum + OrthogonalPixelX);
-                        double OrthogonalResponse1 = GradientVector[0] * OrthogonalVector[0] + GradientVector[1] * OrthogonalVector[1];
-                        OrthogonalPixelX = Convert.ToInt32(Convert.ToDouble(x) - Tau * Scale[s] * OrthogonalVector[0] - 0.5);
-                        OrthogonalPixelY = Convert.ToInt32(Convert.ToDouble(y) - Tau * Scale[s] * OrthogonalVector[1] - 0.5);
-                        GradientVector[0] = GaussianGradientFilters[0].Run2D(XNum, YNum, ImageIntensity, OrthogonalPixelY * XNum + OrthogonalPixelX);
-                        GradientVector[1] = GaussianGradientFilters[1].Run2D(XNum, YNum, ImageIntensity, OrthogonalPixelY * XNum + OrthogonalPixelX);
-                        double OrthogonalResponse2 = GradientVector[0] * OrthogonalVector[0] + GradientVector[1] * OrthogonalVector[1];
-                        double KrissianVesselness = Math.Min(Math.Abs(OrthogonalResponse1), Math.Abs(OrthogonalResponse2)) * Scale[s] / EdgeThreshold;
-                        KrissianVesselness = 1.0 - Math.Exp(-(KrissianVesselness * KrissianVesselness) / (2.0 * gamma * gamma));
-                        Vesselness[y * XNum + x] = Math.Max(KrissianVesselness, Vesselness[y * XNum + x]);
-                    }
-                }
-            }
+                                EigenvalueDecomposition EigenDecom = new EigenvalueDecomposition(HessianMatrix);
+                                double lambda1, lambda2;
+                                Vector OrthogonalVector = new Vector(2);
+                                if (EigenDecom.RealEigenvalues[0] < Math.Abs(EigenDecom.RealEigenvalues[1]))
+                                {
+                                    lambda1 = EigenDecom.RealEigenvalues[0];
+                                    lambda2 = EigenDecom.RealEigenvalues[1];
+                                    OrthogonalVector[0] = EigenDecom.EigenVectors[0, 1];
+                                    OrthogonalVector[1] = EigenDecom.EigenVectors[1, 1];
+                                }
+                                else
+                                {
+                                    lambda1 = EigenDecom.RealEigenvalues[1];
+                                    lambda2 = EigenDecom.RealEigenvalues[0];
+                                    OrthogonalVector[0] = EigenDecom.EigenVectors[0, 0];
+                                    OrthogonalVector[1] = EigenDecom.EigenVectors[1, 0];
+                                }
+                                double RatioA = Math.Abs(lambda1) / Math.Abs(lambda2);
+                                double Structureness = Math.Sqrt(lambda1 * lambda1 + lambda2 * lambda2);
+                                OrthogonalVector = OrthogonalVector.Normalize();    // Get the unitary vector d, which is orthogonal to D
+                                double FrangiVesselness = 0.0;
+                                if (lambda2 > 0.0)
+                                    FrangiVesselness = Math.Exp(-(RatioA * RatioA) / (2 * alpha * alpha)) * (1 - Math.Exp(-(Structureness * Structureness) / (2 * beta * beta)));
+                                Vesselness[CurrentPixelIndex] = Math.Max(FrangiVesselness, Vesselness[CurrentPixelIndex]);
 
-            /*
+                                // Get the filter response R(sigma, voxel)
+                                Vector GradientVector = new Vector(2);
+                                int OrthogonalPixelX = Convert.ToInt32(Convert.ToDouble(x) + Tau * Scale[s] * OrthogonalVector[0] + 0.5);
+                                int OrthogonalPixelY = Convert.ToInt32(Convert.ToDouble(y) + Tau * Scale[s] * OrthogonalVector[1] + 0.5);
+                                GradientVector[0] = GaussianGradientFilters[0].Run2D(XNum, YNum, ImageIntensity, OrthogonalPixelY * XNum + OrthogonalPixelX);
+                                GradientVector[1] = GaussianGradientFilters[1].Run2D(XNum, YNum, ImageIntensity, OrthogonalPixelY * XNum + OrthogonalPixelX);
+                                double OrthogonalResponse1 = GradientVector[0] * OrthogonalVector[0] + GradientVector[1] * OrthogonalVector[1];
+                                OrthogonalPixelX = Convert.ToInt32(Convert.ToDouble(x) - Tau * Scale[s] * OrthogonalVector[0] - 0.5);
+                                OrthogonalPixelY = Convert.ToInt32(Convert.ToDouble(y) - Tau * Scale[s] * OrthogonalVector[1] - 0.5);
+                                GradientVector[0] = GaussianGradientFilters[0].Run2D(XNum, YNum, ImageIntensity, OrthogonalPixelY * XNum + OrthogonalPixelX);
+                                GradientVector[1] = GaussianGradientFilters[1].Run2D(XNum, YNum, ImageIntensity, OrthogonalPixelY * XNum + OrthogonalPixelX);
+                                double OrthogonalResponse2 = GradientVector[0] * OrthogonalVector[0] + GradientVector[1] * OrthogonalVector[1];
+                                double KrissianVesselness = Math.Min(Math.Abs(OrthogonalResponse1), Math.Abs(OrthogonalResponse2)) * Scale[s] / EdgeThreshold;
+                                KrissianVesselness = 1.0 - Math.Exp(-(KrissianVesselness * KrissianVesselness) / (2.0 * gamma * gamma));
+                                Vesselness[CurrentPixelIndex] = Math.Max(KrissianVesselness, Vesselness[CurrentPixelIndex]);
+                            }
+                        }   // For ecah pixel End
+                    //})
+                    //);
+
+            }   // For each scale End
+
             double MaxVesselness = 0.0;
             for (int i = 0; i < PixelNum; i++)
                 MaxVesselness = Math.Max(MaxVesselness, Vesselness[i]);
@@ -277,7 +283,6 @@ namespace iCiRC
                 return Vesselness;
             for (int i = 0; i < PixelNum; i++)
                 Vesselness[i] /= MaxVesselness;
-             * */
 
             return Vesselness;
         }
