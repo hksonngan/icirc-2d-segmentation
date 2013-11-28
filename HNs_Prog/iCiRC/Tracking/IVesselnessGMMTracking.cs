@@ -10,7 +10,6 @@ namespace iCiRC.Tracking
     public class IVesselnessGMMTracking : VesselTracking
     {
         int BackModelNum, ForeModelNum;
-        //IntensityGaussianModel[] GMMComponent;
         IVesselnessGaussianModel[] GMMComponent;
         double[] FrameVesselness;
 
@@ -53,12 +52,13 @@ namespace iCiRC.Tracking
             const int EMIterNum = 5;
             const int StartFrameIndex = 20;
 
-            ProgressWindow winProgress = new ProgressWindow("Vessel tracking...", 0, 10);
+            ProgressWindow winProgress = new ProgressWindow("Vessel tracking...", 0, 5);
             winProgress.Show();
 
             // For the first frame (Post-updating)
             ComputeVesselness(StartFrameIndex);
             SegmentationUsingVesselnessThresholding(StartFrameIndex);
+            PostProcessingUsingCCL(StartFrameIndex, 30);
             InitializeGMMModelParameters(StartFrameIndex);
             for (int iter = 0; iter < EMIterNum; iter++)        // EM interation
             {
@@ -68,10 +68,11 @@ namespace iCiRC.Tracking
             winProgress.Increment(1);
 
             // For each frame 
-            for (int f = StartFrameIndex + 1; f < StartFrameIndex + 10; f++)
+            for (int f = StartFrameIndex + 1; f < StartFrameIndex + 5; f++)
             {
                 ComputeVesselness(f);
                 SegmentationUsingDataCost(f);
+                PostProcessingUsingCCL(f, 30);
                 //SegmentationUsingGraphCut(f);
 
                 // Post-undating EM
@@ -234,8 +235,8 @@ namespace iCiRC.Tracking
                     for (int k = 0; k < BackModelNum; k++)
                     {
                         SumPosterior[k] += PosteriorProbability[i, k];
-                        SumIVesselness[k][0] += PosteriorProbability[i, k] * Convert.ToDouble(FrameIntensity[CurrentFrameOffset + i]);
-                        SumIVesselness[k][1] += PosteriorProbability[i, k] * FrameVesselness[CurrentFrameOffset + i];
+                        SumIVesselness[k][0] += PosteriorProbability[i, k] * CurrentPixelIntensity;
+                        SumIVesselness[k][1] += PosteriorProbability[i, k] * CurrentPixelVesselness;
                     }
                 }
                 else if (FrameMask[CurrentFrameOffset + i] == Constants.LABEL_FOREGROUND)
@@ -243,8 +244,8 @@ namespace iCiRC.Tracking
                     for (int k = BackModelNum; k < TotalModelNum; k++)
                     {
                         SumPosterior[k] += PosteriorProbability[i, k];
-                        SumIVesselness[k][0] += PosteriorProbability[i, k] * Convert.ToDouble(FrameIntensity[CurrentFrameOffset + i]);
-                        SumIVesselness[k][1] += PosteriorProbability[i, k] * FrameVesselness[CurrentFrameOffset + i];
+                        SumIVesselness[k][0] += PosteriorProbability[i, k] * CurrentPixelIntensity;
+                        SumIVesselness[k][1] += PosteriorProbability[i, k] * CurrentPixelVesselness;
                     }
                 }
             }
@@ -265,8 +266,8 @@ namespace iCiRC.Tracking
                     for (int k = 0; k < BackModelNum; k++)
                     {
                         Vector IVesselnessDifference = new Vector(2);
-                        IVesselnessDifference[0] = Convert.ToDouble(FrameIntensity[CurrentFrameOffset + i]) - GMMComponent[k].IVesselnessMean[0];
-                        IVesselnessDifference[1] = FrameVesselness[CurrentFrameOffset + i] - GMMComponent[k].IVesselnessMean[1];
+                        IVesselnessDifference[0] = CurrentPixelIntensity - GMMComponent[k].IVesselnessMean[0];
+                        IVesselnessDifference[1] = CurrentPixelVesselness - GMMComponent[k].IVesselnessMean[1];
                         SumIVesselnessVariance[k][0, 0] += PosteriorProbability[i, k] * IVesselnessDifference[0] * IVesselnessDifference[0];
                         SumIVesselnessVariance[k][0, 1] += PosteriorProbability[i, k] * IVesselnessDifference[0] * IVesselnessDifference[1];
                         SumIVesselnessVariance[k][1, 0] += PosteriorProbability[i, k] * IVesselnessDifference[1] * IVesselnessDifference[0];
@@ -278,8 +279,8 @@ namespace iCiRC.Tracking
                     for (int k = BackModelNum; k < TotalModelNum; k++)
                     {
                         Vector IVesselnessDifference = new Vector(2);
-                        IVesselnessDifference[0] = Convert.ToDouble(FrameIntensity[CurrentFrameOffset + i]) - GMMComponent[k].IVesselnessMean[0];
-                        IVesselnessDifference[1] = FrameVesselness[CurrentFrameOffset + i] - GMMComponent[k].IVesselnessMean[1];
+                        IVesselnessDifference[0] = CurrentPixelIntensity - GMMComponent[k].IVesselnessMean[0];
+                        IVesselnessDifference[1] = CurrentPixelVesselness - GMMComponent[k].IVesselnessMean[1];
                         SumIVesselnessVariance[k][0, 0] += PosteriorProbability[i, k] * IVesselnessDifference[0] * IVesselnessDifference[0];
                         SumIVesselnessVariance[k][0, 1] += PosteriorProbability[i, k] * IVesselnessDifference[0] * IVesselnessDifference[1];
                         SumIVesselnessVariance[k][1, 0] += PosteriorProbability[i, k] * IVesselnessDifference[1] * IVesselnessDifference[0];
@@ -336,12 +337,14 @@ namespace iCiRC.Tracking
                 for (int k = 0; k < BackModelNum; k++)
                 {
                     double GMMLikelihood = GMMComponent[k].Weight * GMMComponent[k].GetGaussianProbability(CurrentPixelIntensity, CurrentPixelVesselness);
-                    BackLikelihood += GMMLikelihood * BackPriorProbability;
+                    if (GMMComponent[k].IVesselnessMean[1] < 255.0 * 0.3)
+                        BackLikelihood += GMMLikelihood * BackPriorProbability;
                 }
                 for (int k = BackModelNum; k < TotalModelNum; k++)
                 {
                     double GMMLikelihood = GMMComponent[k].Weight * GMMComponent[k].GetGaussianProbability(CurrentPixelIntensity, CurrentPixelVesselness);
-                    ForeLikelihood += GMMLikelihood * ForePriorProbability;
+                    if (GMMComponent[k].IVesselnessMean[1] > 255.0 * 0.3)
+                        ForeLikelihood += GMMLikelihood * ForePriorProbability;
                 }
 
                 if (ForeLikelihood > BackLikelihood)
@@ -374,7 +377,7 @@ namespace iCiRC.Tracking
 
             fixed (double* BufData = DataEnergy, BufSmoothness = SmoothnessEnergy, BufHSmoothness = SmoothnessHorizontal, BufVSmoothness = SmoothnessVertical)
             {
-                GraphCutWrap GraphCut = new GraphCutWrap(XNum, YNum, BufData, BufSmoothness, BufHSmoothness, BufVSmoothness, true);
+                GraphCutWrap GraphCut = new GraphCutWrap(XNum, YNum, BufData, BufSmoothness, BufHSmoothness, BufVSmoothness, false);
                 GraphCut.Initialize();
                 GraphCut.ClearAnswer();
 
@@ -403,18 +406,6 @@ namespace iCiRC.Tracking
             for (int i = 0; i < FramePixelNum; i++)
                 CurrentXraySlice[i] = Convert.ToByte(FrameIntensity[CurrentFrameOffset + i]);
 
-            /*
-            // Frangi's vesselness
-            const int ScaleNum = 3;
-            double[] ScaleArray = { 2.5, 3.0, 3.5 };
-            ResponseMap map = new ResponseMap();
-            double[] FrangiVesselness = map.RunFrangiMethod2D(XNum, YNum, CurrentXraySlice, ScaleNum, ScaleArray);
-            ScaleArray[0] = 3.0; ScaleArray[1] = 4.0; ScaleArray[2] = 5.0;
-            double[] KrissianVesselness = map.RunKrissianModelMethod2D(XNum, YNum, CurrentXraySlice, ScaleNum, ScaleArray);
-            for (int i = 0; i < FramePixelNum; i++)
-                FrangiVesselness[i] = Math.Max(FrangiVesselness[i], KrissianVesselness[i]) * 255.0;
-            */
-
             const int ScaleNum = 5;
             double[] ScaleArray = { 2.12, 2.72, 3.5, 4.0, 5.0 };
             ResponseMap map = new ResponseMap();
@@ -426,6 +417,25 @@ namespace iCiRC.Tracking
 
             for (int i = 0; i < FramePixelNum; i++)
                 FrameVesselness[CurrentFrameOffset + i] = FrangiKrissianVesselenss[i] * 255.0;
+        }
+
+        private void PostProcessingUsingCCL(int CurrentFrameIndex, int MinSize)
+        {
+            int FramePixelNum = XNum * YNum;
+            int CurrentFrameOffset = CurrentFrameIndex * FramePixelNum;
+            byte[] CurrentXraySlice = new byte[FramePixelNum];
+            for (int i = 0; i < FramePixelNum; i++)
+                CurrentXraySlice[i] = FrameMask[CurrentFrameOffset + i];
+
+            ConnectedComponentLabeling CCLProcessor = new ConnectedComponentLabeling(XNum, YNum);
+            int LabelNum = CCLProcessor.RunCCL(CurrentXraySlice, MinSize);
+            for (int i = 0; i < FramePixelNum; i++)
+            {
+                if (CCLProcessor.OutputFrameMask[i] == Constants.LABEL_BACKGROUND)
+                    FrameMask[CurrentFrameOffset + i] = Constants.LABEL_BACKGROUND;
+                else
+                    FrameMask[CurrentFrameOffset + i] = Constants.LABEL_FOREGROUND;
+            }
         }
 
         private double[] BuildDataEnergyArray(int CurrentFrameIndex)
@@ -455,13 +465,15 @@ namespace iCiRC.Tracking
                 for (int k = 0; k < BackModelNum; k++)
                 {
                     double GMMLikelihood = GMMComponent[k].Weight * GMMComponent[k].GetGaussianProbability(CurrentPixelIntensity, CurrentPixelVesselness);
-                    DataCost[i * LabelNum] += GMMLikelihood * BackPriorProbability;
+                    if (GMMComponent[k].IVesselnessMean[1] < 255.0 * 3)
+                        DataCost[i * LabelNum] += GMMLikelihood * BackPriorProbability;
                 }
                 DataCost[i * LabelNum] = -Math.Log10(DataCost[i * LabelNum]);
                 for (int k = BackModelNum; k < TotalModelNum; k++)
                 {
                     double GMMLikelihood = GMMComponent[k].Weight * GMMComponent[k].GetGaussianProbability(CurrentPixelIntensity, CurrentPixelVesselness);
-                    DataCost[i * LabelNum + 1] += GMMLikelihood * ForePriorProbability;
+                    if (GMMComponent[k].IVesselnessMean[1] > 255.0 * 3)
+                        DataCost[i * LabelNum + 1] += GMMLikelihood * ForePriorProbability;
                 }
                 DataCost[i * LabelNum + 1] = -Math.Log10(DataCost[i * LabelNum + 1]);
             }
@@ -470,7 +482,52 @@ namespace iCiRC.Tracking
 
         private double[] BuildSmoothnessEnergyArray(int CurrentFrameIndex, ref double[] HSmoothness, ref double[] VSmoothness)
         {
-            const double Lamda = 0.5;
+            const double Lamda1 = 0.1, Lamda2 = 0.5;
+            const double Sigma = 30.0;
+            //int TotalModelNum = BackModelNum + ForeModelNum;
+            int FramePixelNum = XNum * YNum;
+            int LabelNum = 2;
+            int CurrentFrameOffset = CurrentFrameIndex * FramePixelNum;
+
+            double[] SmoothnessCost = new double[LabelNum * LabelNum];
+            SmoothnessCost.Initialize();
+            SmoothnessCost[1] = SmoothnessCost[2] = 1.0;
+
+            // Horizontal 
+            for (int y = 0; y < YNum; y++)
+            {
+                for (int x = 1; x < XNum; x++)
+                {
+                    int CurrentPixelIndex = y * XNum + x;
+                    double CurrentPixelIntensity = Convert.ToDouble(FrameIntensity[CurrentFrameOffset + CurrentPixelIndex]);
+                    double NeighborPixelIntensity = Convert.ToDouble(FrameIntensity[CurrentFrameOffset + CurrentPixelIndex - 1]);
+                    double IntensityDifference = CurrentPixelIntensity - NeighborPixelIntensity;
+                    double VesselnessDifference = FrameVesselness[CurrentFrameOffset + CurrentPixelIndex] - FrameVesselness[CurrentFrameOffset + CurrentPixelIndex - 1];
+                    double Difference = Math.Sqrt(IntensityDifference * IntensityDifference + VesselnessDifference * VesselnessDifference);
+                    HSmoothness[CurrentPixelIndex - 1] = Lamda1 * (Math.Exp(-(Difference * Difference) / (2.0 * Sigma * Sigma)) + Lamda2);
+                }
+            }
+            // Vertical
+            for (int y = 1; y < YNum; y++)
+            {
+                for (int x = 0; x < XNum; x++)
+                {
+                    int CurrentPixelIndex = y * XNum + x;
+                    double CurrentPixelIntensity = Convert.ToDouble(FrameIntensity[CurrentFrameOffset + CurrentPixelIndex]);
+                    double NeighborPixelIntensity = Convert.ToDouble(FrameIntensity[CurrentFrameOffset + CurrentPixelIndex - XNum]);
+                    double IntensityDifference = CurrentPixelIntensity - NeighborPixelIntensity;
+                    double VesselnessDifference = FrameVesselness[CurrentFrameOffset + CurrentPixelIndex] - FrameVesselness[CurrentFrameOffset + CurrentPixelIndex - XNum];
+                    double Difference = Math.Sqrt(IntensityDifference * IntensityDifference + VesselnessDifference * VesselnessDifference);
+                    VSmoothness[CurrentPixelIndex - XNum] = Lamda1 * (Math.Exp(-(Difference * Difference) / (2.0 * Sigma * Sigma)) + Lamda2);
+                }
+            }
+            return SmoothnessCost;
+        }
+
+        /*
+        private double[] BuildSmoothnessEnergyArray(int CurrentFrameIndex, ref double[] HSmoothness, ref double[] VSmoothness)
+        {
+            const double Lamda = 1.0;
             const double Sigma = 50.0;
             int TotalModelNum = BackModelNum + ForeModelNum;
             int FramePixelNum = XNum * YNum;
@@ -511,5 +568,6 @@ namespace iCiRC.Tracking
             }
             return SmoothnessCost;
         }
+         * */
     }
 }

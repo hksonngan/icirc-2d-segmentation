@@ -71,6 +71,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Clustering.cs" />
+    <Compile Include="ConnectedComponentLabeling.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="FFT.cs" />
     <Compile Include="Filters.cs" />
