@@ -160,6 +160,23 @@ namespace HNs_Prog
 
         private void ButtonFrameProcessingClick(object sender, EventArgs e)
         {
+            int FramePixelNum = VolumeData.XNum * VolumeData.YNum;
+            int CurrentFrameOffset = CurrentSliceIndex * FramePixelNum;
+            byte[] CurrentXraySlice = new byte[FramePixelNum];
+            for (int i = 0; i < FramePixelNum; i++)
+                CurrentXraySlice[i] = VolumeData.VolumeMask[CurrentFrameOffset + i];
+
+            Skeletonization ThinningProcessor = new Skeletonization(VolumeData.XNum, VolumeData.YNum);
+            byte[] ThinningMask = ThinningProcessor.RunSkeletonization(CurrentXraySlice);
+            for (int i = 0; i < FramePixelNum; i++)
+            {
+                if (ThinningMask[i] == Constants.LABEL_FOREGROUND)
+                    VolumeData.VolumeMask[CurrentFrameOffset + i] = 0x01;
+            }
+
+            this.CheckBoxMasking.Enabled = true;
+            this.CheckBoxMasking.Checked = true;
+            this.PanelSliceImage.Invalidate();
         }
 
         private void ButtonDICOMSaveClick(object sender, EventArgs e)

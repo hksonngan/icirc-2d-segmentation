@@ -55,7 +55,7 @@ namespace iCiRC.Tracking
             const int EMIterNum = 5;
             const int StartFrameIndex = 20;
 
-            ProgressWindow winProgress = new ProgressWindow("Vessel tracking...", 0, 5);
+            ProgressWindow winProgress = new ProgressWindow("Vessel tracking...", 0, 30);
             winProgress.Show();
 
             // For the first frame (Post-updating)
@@ -71,19 +71,22 @@ namespace iCiRC.Tracking
             winProgress.Increment(1);
 
             // For each frame 
-            for (int f = StartFrameIndex + 1; f < StartFrameIndex + 5; f++)
+            for (int f = StartFrameIndex + 1; f < StartFrameIndex + 30; f++)
             {
                 ComputeVesselness(f);
                 SegmentationUsingDataCost(f);
                 PostProcessingUsingCCL(f, 40);
+                //CenterlineExtraction(f);
                 //SegmentationUsingGraphCut(f);
 
                 // Post-undating EM
+                /*
                 for (int iter = 0; iter < EMIterNum; iter++)
                 {
                     double[,] PosteriorProbability = ExpectationStepInPostUpdating(f);
                     MaximizationStepInPostUpdating(f, PosteriorProbability);
                 }
+                 * */
                 winProgress.Increment(1);
             }
             winProgress.Close();
@@ -487,6 +490,23 @@ namespace iCiRC.Tracking
             {
                 if (CCLProcessor.OutputFrameMask[i] != Constants.LABEL_BACKGROUND)
                     FrameMask[CurrentFrameOffset + i] = Constants.LABEL_FOREGROUND;
+            }
+        }
+
+        private void CenterlineExtraction(int CurrentFrameIndex)
+        {
+            int FramePixelNum = XNum * YNum;
+            int CurrentFrameOffset = CurrentFrameIndex * FramePixelNum;
+            byte[] CurrentXraySlice = new byte[FramePixelNum];
+            for (int i = 0; i < FramePixelNum; i++)
+                CurrentXraySlice[i] = FrameMask[CurrentFrameOffset + i];
+
+            Skeletonization ThinningProcessor = new Skeletonization(XNum, YNum);
+            byte[] ThinningMask = ThinningProcessor.RunSkeletonization(CurrentXraySlice);
+            for (int i = 0; i < FramePixelNum; i++)
+            {
+                if (ThinningMask[i] == Constants.LABEL_FOREGROUND)
+                    FrameMask[CurrentFrameOffset + i] = 0x01;
             }
         }
 
