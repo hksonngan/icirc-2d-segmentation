@@ -202,12 +202,16 @@ namespace HNs_Prog
                     if (VolumeData.VolumeMask[CurrentSliceOffset + i] == 0xff)
                     {
                         CurrentIntensity = WindowFunction.ConvertDensityToIntensity(DensityCurrentSlice[i]);
-                        Color MaskingColor = Color.Pink;
-                        int NewR = Convert.ToInt32(ColorLUT[CurrentIntensity].R * 0.75 + MaskingColor.R * 0.25);
-                        int NewG = Convert.ToInt32(ColorLUT[CurrentIntensity].G * 0.75 + MaskingColor.G * 0.25);
-                        int NewB = Convert.ToInt32(ColorLUT[CurrentIntensity].B * 0.75 + MaskingColor.B * 0.25);
+                        Color MaskingColor = Color.Yellow;
+                        int NewR = Convert.ToInt32(ColorLUT[CurrentIntensity].R * 0.6 + MaskingColor.R * 0.4);
+                        int NewG = Convert.ToInt32(ColorLUT[CurrentIntensity].G * 0.6 + MaskingColor.G * 0.4);
+                        int NewB = Convert.ToInt32(ColorLUT[CurrentIntensity].B * 0.6 + MaskingColor.B * 0.4);
                         Color BlendedColor = Color.FromArgb(NewR, NewG, NewB);
                         PixelArray[i] = (uint)BlendedColor.ToArgb();
+                    }
+                    else if (VolumeData.VolumeMask[CurrentSliceOffset + i] == 0x01)
+                    {
+                        PixelArray[i] = (uint)Color.Red.ToArgb();
                     }
                 }
             }

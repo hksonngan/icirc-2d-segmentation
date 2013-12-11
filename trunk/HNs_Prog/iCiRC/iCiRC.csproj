@@ -79,6 +79,7 @@
     <Compile Include="HomomorphicFilter.cs" />
     <Compile Include="OpenMPStyleThread.cs" />
     <Compile Include="PerPixelIntensityGMMTracking.cs" />
+    <Compile Include="Skeletonization.cs" />
     <Compile Include="SRGClustering.cs" />
     <Compile Include="Tracking\IFKGMMTracking.cs" />
     <Compile Include="Tracking\IVesselnessGMMTracking.cs" />
