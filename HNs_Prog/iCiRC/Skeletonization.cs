@@ -7,7 +7,7 @@ namespace iCiRC
 {
     public class Skeletonization : FrameProcessing
     {
-        public enum AlgorithmType { PalagyiThinning, ZhangAndSuenThinning };
+        public enum AlgorithmType { PalagyiThinning, ZhangAndSuenThinning, RosenfeldThinning };
         public AlgorithmType AlgType;
 
         private enum Direction { Left, Right, Up, Down };
@@ -35,9 +35,120 @@ namespace iCiRC
                     break;
                 case AlgorithmType.ZhangAndSuenThinning:
                     break;
+                case AlgorithmType.RosenfeldThinning:
+                    RunRosenfeldThinning();
+                    break;
             }
 
             return OutputFrameMask;
+        }
+
+        private void RunRosenfeldThinning()
+        {
+            int FramePixelNum = XNum * YNum;
+            const byte TEMP_LABEL_BACKGROUND = 0x00;
+            const byte TEMP_LABEL_FOREGROUND = 0x01;
+
+            int[] NeiborOffset = new int[8];
+            NeiborOffset[0] = -XNum + 1;
+            NeiborOffset[1] = -XNum;
+            NeiborOffset[2] = -XNum - 1;
+            NeiborOffset[3] = -1;
+            NeiborOffset[4] = XNum - 1;
+            NeiborOffset[5] = XNum;
+            NeiborOffset[6] = XNum + 1;
+            NeiborOffset[7] = 1;
+
+            byte[] TempMaskSrc = new byte[FramePixelNum];
+            TempMaskSrc.Initialize();
+            for (int i = 0; i < FramePixelNum; i++)
+            {
+                if (InputFrameMask[i] == Constants.LABEL_FOREGROUND)
+                    TempMaskSrc[i] = 0x01;
+            }
+            byte[] TempMaskDes = new byte[FramePixelNum];
+            TempMaskDes = (byte[])TempMaskSrc.Clone();
+
+            bool CheckWhile = true;
+            while (CheckWhile)
+            {
+                CheckWhile = false;
+                for (int i = 1; i < 8; i += 2)
+                {
+                    for (int y = 1; y < YNum - 1; y++)
+                    {
+                        for (int x = 1; x < XNum - 1; x++)
+                        {
+                            int CurrentPixelIndex = y * XNum + x;
+                            int NeiborPixelIndex = CurrentPixelIndex + NeiborOffset[i];
+                            if (TempMaskSrc[CurrentPixelIndex] == TEMP_LABEL_BACKGROUND || TempMaskSrc[NeiborPixelIndex] == TEMP_LABEL_FOREGROUND)
+                                continue;
+
+                            byte NeiborMaskSum = 0;
+                            byte[] NeiborMask = new byte[8];
+                            for (int n = 0; n < 8; n++)
+                            {
+                                NeiborMask[n] = TempMaskSrc[CurrentPixelIndex + NeiborOffset[n]];
+                                NeiborMaskSum += NeiborMask[n];
+                            }
+                            if (NeiborMaskSum <= 1)
+                                continue;
+
+                            bool ContinueCheck = false;
+                            int n48 = NeiborMask[3] + NeiborMask[7];
+                            int n26 = NeiborMask[1] + NeiborMask[5];
+                            int n24 = NeiborMask[1] + NeiborMask[3];
+                            int n46 = NeiborMask[3] + NeiborMask[5];
+                            int n68 = NeiborMask[5] + NeiborMask[7];
+                            int n82 = NeiborMask[7] + NeiborMask[1];
+                            int n123 = NeiborMask[0] + NeiborMask[1] + NeiborMask[2];
+                            int n345 = NeiborMask[2] + NeiborMask[3] + NeiborMask[4];
+                            int n567 = NeiborMask[4] + NeiborMask[5] + NeiborMask[6];
+                            int n781 = NeiborMask[6] + NeiborMask[7] + NeiborMask[0];
+
+                            if ((NeiborMask[1] == TEMP_LABEL_FOREGROUND && n48 == 0 && n567 > 0)
+                                || (NeiborMask[5] == TEMP_LABEL_FOREGROUND && n48 == 0 && n123 > 0)
+                                || (NeiborMask[7] == TEMP_LABEL_FOREGROUND && n26 == 0 && n345 > 0)
+                                || (NeiborMask[3] == TEMP_LABEL_FOREGROUND && n26 == 0 && n781 > 0))
+                            {
+                                if (!ContinueCheck)
+                                    continue;
+                                TempMaskDes[CurrentPixelIndex] = TEMP_LABEL_BACKGROUND;
+                                CheckWhile = true;
+                                continue;
+                            }
+
+                            if ((NeiborMask[4] == TEMP_LABEL_FOREGROUND && n46 == 0)
+                                || (NeiborMask[6] == TEMP_LABEL_FOREGROUND && n68 == 0)
+                                || (NeiborMask[0] == TEMP_LABEL_FOREGROUND && n82 == 0)
+                                || (NeiborMask[2] == TEMP_LABEL_FOREGROUND && n24 == 0))
+                            {
+                                if (!ContinueCheck)
+                                    continue;
+                                TempMaskDes[CurrentPixelIndex] = TEMP_LABEL_BACKGROUND;
+                                CheckWhile = true;
+                                continue;
+                            }
+
+                            ContinueCheck = true;
+                            if (!ContinueCheck)
+                                continue;
+                            TempMaskDes[CurrentPixelIndex] = TEMP_LABEL_BACKGROUND;
+                            CheckWhile = true;
+                        }
+                    }
+
+                    TempMaskSrc = (byte[])TempMaskDes.Clone();
+                }
+            }
+
+            OutputFrameMask = new byte[FramePixelNum];
+            OutputFrameMask.Initialize();
+            for (int i = 0; i < FramePixelNum; i++)
+            {
+                if (TempMaskSrc[i] == TEMP_LABEL_FOREGROUND)
+                    OutputFrameMask[i] = Constants.LABEL_FOREGROUND;
+            }
         }
 
         private void RunPalagyiThinning()

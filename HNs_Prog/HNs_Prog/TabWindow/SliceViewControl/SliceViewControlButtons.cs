@@ -167,6 +167,7 @@ namespace HNs_Prog
                 CurrentXraySlice[i] = VolumeData.VolumeMask[CurrentFrameOffset + i];
 
             Skeletonization ThinningProcessor = new Skeletonization(VolumeData.XNum, VolumeData.YNum);
+            ThinningProcessor.AlgType = Skeletonization.AlgorithmType.RosenfeldThinning;
             byte[] ThinningMask = ThinningProcessor.RunSkeletonization(CurrentXraySlice);
             for (int i = 0; i < FramePixelNum; i++)
             {
