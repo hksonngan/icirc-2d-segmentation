@@ -74,6 +74,7 @@
     <Compile Include="Clustering.cs" />
     <Compile Include="ConnectedComponentLabeling.cs" />
     <Compile Include="Constants.cs" />
+    <Compile Include="DistanceTransform.cs" />
     <Compile Include="FFT.cs" />
     <Compile Include="Filters.cs" />
     <Compile Include="FrameProcessing.cs" />
@@ -82,9 +83,8 @@
     <Compile Include="PerPixelIntensityGMMTracking.cs" />
     <Compile Include="Skeletonization.cs" />
     <Compile Include="SRGClustering.cs" />
-    <Compile Include="Tracking\AdaptiveIVesselnessGMMTracking.cs" />
-    <Compile Include="Tracking\IFKGMMTracking.cs" />
     <Compile Include="Tracking\IVesselnessGMMTracking.cs" />
+    <Compile Include="Tracking\IFKGMMTracking.cs" />
     <Compile Include="Tracking\IntensityGMMTracking.cs" />
     <Compile Include="KmeansClustering.cs" />
     <Compile Include="MorphologicalFilter.cs" />

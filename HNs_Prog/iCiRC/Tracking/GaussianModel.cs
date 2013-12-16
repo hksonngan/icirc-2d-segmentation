@@ -138,48 +138,6 @@ namespace iCiRC.Tracking
     }
 
     //---------------------------------------------------------------------------
-    /** @class IVesselnessGaussianModel
-        @author Hyunna Lee
-        @date 2013.11.22
-        @brief GMM Model parameters for intensity component
-    */
-    //-------------------------------------------------------------------------
-    class AdaptiveIVesselnessGaussianModel : IVesselnessGaussianModel
-    {
-        public bool IsBackComponent;
-
-        public AdaptiveIVesselnessGaussianModel()
-        {
-            IVesselnessMean = new Vector(2);
-            IVesselnessCoVar = new Matrix(2, 2);
-            Weight = 0.0;
-            IsBackComponent = true;
-        }
-
-        //---------------------------------------------------------------------------
-        /** @brief Gaussian probability density function for bivariate
-            @author Hyunna Lee
-            @date 2013.11.22
-            @param Intensity : intensity component of the current instant 
-            @param Vesselness : vesselness component of the current instant 
-            @return Probability of the current instant
-        */
-        //-------------------------------------------------------------------------
-        public double GetGaussianProbability(double Intensity, double Vesselness)
-        {
-            Vector DifferenceVector = new Vector(2);
-            DifferenceVector[0] = Intensity - IVesselnessMean[0];
-            DifferenceVector[1] = Vesselness - IVesselnessMean[1];
-            Matrix InvCoVar = new Matrix(2, 2);
-            InvCoVar = IVesselnessCoVar.Inverse();
-            double det = IVesselnessCoVar.Determinant();
-            double Difference = DifferenceVector[0] * (DifferenceVector[0] * InvCoVar[0, 0] + DifferenceVector[1] * InvCoVar[1, 0])
-                              + DifferenceVector[1] * (DifferenceVector[0] * InvCoVar[0, 1] + DifferenceVector[1] * InvCoVar[1, 1]);
-            return Math.Exp(-Difference / 2.0) / (2.0 * Math.PI * Math.Sqrt(det));
-        }
-    }
-
-    //---------------------------------------------------------------------------
     /** @class IFKGaussianModel
         @author Hyunna Lee
         @date 2013.11.28
