@@ -280,6 +280,7 @@ namespace HNs_Prog
             uint[] PixelArray = (uint[])TextureOutput.LockRectangle(typeof(uint), 0, LockFlags.Discard, TextureWidth * TextureHeight);
             for (int i = 0; i < TextureHeight * TextureWidth; i++)
                 PixelArray[i] = (uint)(Color.FromArgb(Intensity[i], Intensity[i], Intensity[i])).ToArgb();
+            /*
             if (CheckBoxMasking.Checked)
             {
                 int CurrentSliceOffset = CurrentSliceIndex * VolumeData.YNum * VolumeData.XNum;
@@ -299,6 +300,7 @@ namespace HNs_Prog
                         PixelArray[i] = (uint)Color.Yellow.ToArgb();
                 }
             }
+             * */
             TextureOutput.UnlockRectangle(0);
         }
 
