@@ -187,6 +187,9 @@ namespace HNs_Prog
             double[] DistanceMask = DistanceProcessor.RunDistanceMap(CurrentXraySlice);
             CurrentXraySlice.Initialize();
             for (int i = 0; i < FramePixelNum; i++)
+                CurrentXraySlice[i] = Convert.ToByte(255.0 * DistanceMask[i]);
+            /*
+            for (int i = 0; i < FramePixelNum; i++)
             {
                 if (DistanceMask[i] < 0.0)
                     CurrentXraySlice[i] = 255;
@@ -194,6 +197,7 @@ namespace HNs_Prog
                     CurrentXraySlice[i] = Convert.ToByte(255 - Convert.ToInt32(DistanceMask[i]));
 
             }
+             * */
             UpdateTextureOutput(CurrentXraySlice);
             this.PanelOutputImage.Invalidate();
 

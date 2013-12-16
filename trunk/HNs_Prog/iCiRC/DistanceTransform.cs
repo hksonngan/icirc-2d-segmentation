@@ -37,7 +37,26 @@ namespace iCiRC
                     break;
             }
 
+            ConvertToProbability(10.0);
+
             return DistanceMap;
+        }
+
+        private void ConvertToProbability(double Sigma)
+        {
+            int FramePixelNum = XNum * YNum;
+            for (int i = 0; i < FramePixelNum; i++)
+            {
+                if (DistanceMap[i] < 0.0)
+                    DistanceMap[i] = 0.0;
+                double GaussianValue = Math.Exp(-(DistanceMap[i] * DistanceMap[i]) / (2.0 * Sigma * Sigma));
+                DistanceMap[i] = GaussianValue / (Sigma * Math.Sqrt(2.0 * Math.PI));
+            }
+            double MaxProbability = 0.0;
+            for (int i = 0; i < FramePixelNum; i++)
+                MaxProbability = Math.Max(MaxProbability, DistanceMap[i]);
+            for (int i = 0; i < FramePixelNum; i++)
+                DistanceMap[i] /= MaxProbability;
         }
 
         private void RunEuclideanDistance()
