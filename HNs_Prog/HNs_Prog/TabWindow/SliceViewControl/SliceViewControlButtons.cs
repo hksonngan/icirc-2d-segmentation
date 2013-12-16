@@ -50,7 +50,7 @@ namespace HNs_Prog
             else if (VesselEnhancementDialog.MethodIndex == VEDialog.VEMethod.KrissianModel)
             {
                 const int ScaleNum = 5;
-                double[] ScaleArray = { 2.12, 2.72, 3.5, 4.0, 5.0 };
+                double[] ScaleArray = { 2.12, 2.72, 3.5, 4.5, 6.0 };
                 //double[] ScaleArray = { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0 };
                 //double[] ScaleArray = { 0.7, 1.4, 2.1, 2.8, 3.5, 4.2 };
 
@@ -132,15 +132,20 @@ namespace HNs_Prog
             }
             else if (GMMModelDialog.ModelIndex == GMMDialog.GMMModel.IVesselness)
             {
-                VesselTracking tracker = new IVesselnessGMMTracking();
+                //VesselTracking tracker = new IVesselnessGMMTracking();
+                //VolumeData.VolumeMask = tracker.RunTracking(VolumeData.XNum, VolumeData.YNum, VolumeData.ZNum, VolumeData.VolumeDensity);
+                VesselTracking tracker = new AdaptiveIVesselnessGMMTracking();
+                VolumeData.VolumeMask = tracker.RunTracking(VolumeData.XNum, VolumeData.YNum, VolumeData.ZNum, VolumeData.VolumeDensity);
+            }
+            else if (GMMModelDialog.ModelIndex == GMMDialog.GMMModel.IFangiKrissian)
+            {
+                VesselTracking tracker = new IFKGMMTracking();
                 VolumeData.VolumeMask = tracker.RunTracking(VolumeData.XNum, VolumeData.YNum, VolumeData.ZNum, VolumeData.VolumeDensity);
             }
             else if (GMMModelDialog.ModelIndex == GMMDialog.GMMModel.SCOriginal)
             {
-                VesselTracking tracker = new IFKGMMTracking();
+                VesselTracking tracker = new SCOriginalGMMTracking();
                 VolumeData.VolumeMask = tracker.RunTracking(VolumeData.XNum, VolumeData.YNum, VolumeData.ZNum, VolumeData.VolumeDensity);
-                //VesselTracking tracker = new SCOriginalGMMTracking();
-                //VolumeData.VolumeMask = tracker.RunTracking(VolumeData.XNum, VolumeData.YNum, VolumeData.ZNum, VolumeData.VolumeDensity);
             }
             else if (GMMModelDialog.ModelIndex == GMMDialog.GMMModel.SIFrangi)
             {

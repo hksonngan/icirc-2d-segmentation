@@ -78,7 +78,6 @@ namespace iCiRC
                 }
             }
 
-            /*
             double MaxVesselness = 0.0;
             for (int i = 0; i < PixelNum; i++)
                 MaxVesselness = Math.Max(MaxVesselness, Vesselness[i]);
@@ -86,7 +85,6 @@ namespace iCiRC
                 return Vesselness;
             for (int i = 0; i < PixelNum; i++)
                 Vesselness[i] /= MaxVesselness;
-             * */
 
             return Vesselness;
         }
@@ -169,7 +167,6 @@ namespace iCiRC
             }
 
             // Response map normalization: [0, maximal] -> [0, 1]
-            /*
             double MaxResponse = 0.0;
             for (int i = 0; i < XNum * YNum; i++)
                 MaxResponse = Math.Max(MaxResponse, Response[i]);
@@ -177,7 +174,6 @@ namespace iCiRC
                 return Response;
             for (int i = 0; i < XNum * YNum; i++)
                 Response[i] /= MaxResponse;
-             * */
 
             return Response;
         }
