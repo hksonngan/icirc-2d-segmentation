@@ -132,9 +132,7 @@ namespace HNs_Prog
             }
             else if (GMMModelDialog.ModelIndex == GMMDialog.GMMModel.IVesselness)
             {
-                //VesselTracking tracker = new IVesselnessGMMTracking();
-                //VolumeData.VolumeMask = tracker.RunTracking(VolumeData.XNum, VolumeData.YNum, VolumeData.ZNum, VolumeData.VolumeDensity);
-                VesselTracking tracker = new AdaptiveIVesselnessGMMTracking();
+                VesselTracking tracker = new IVesselnessGMMTracking();
                 VolumeData.VolumeMask = tracker.RunTracking(VolumeData.XNum, VolumeData.YNum, VolumeData.ZNum, VolumeData.VolumeDensity);
             }
             else if (GMMModelDialog.ModelIndex == GMMDialog.GMMModel.IFangiKrissian)
@@ -171,6 +169,7 @@ namespace HNs_Prog
             for (int i = 0; i < FramePixelNum; i++)
                 CurrentXraySlice[i] = VolumeData.VolumeMask[CurrentFrameOffset + i];
 
+            /*
             Skeletonization ThinningProcessor = new Skeletonization(VolumeData.XNum, VolumeData.YNum);
             ThinningProcessor.AlgType = Skeletonization.AlgorithmType.RosenfeldThinning;
             byte[] ThinningMask = ThinningProcessor.RunSkeletonization(CurrentXraySlice);
@@ -179,10 +178,25 @@ namespace HNs_Prog
                 if (ThinningMask[i] == Constants.LABEL_FOREGROUND)
                     VolumeData.VolumeMask[CurrentFrameOffset + i] = 0x01;
             }
-
             this.CheckBoxMasking.Enabled = true;
             this.CheckBoxMasking.Checked = true;
-            this.PanelSliceImage.Invalidate();
+            this.PanelSliceImage.Invalidate(); 
+            */
+
+            DistanceTransform DistanceProcessor = new DistanceTransform(VolumeData.XNum, VolumeData.YNum);
+            double[] DistanceMask = DistanceProcessor.RunDistanceMap(CurrentXraySlice);
+            CurrentXraySlice.Initialize();
+            for (int i = 0; i < FramePixelNum; i++)
+            {
+                if (DistanceMask[i] < 0.0)
+                    CurrentXraySlice[i] = 255;
+                else if (DistanceMask[i] < 255.0)
+                    CurrentXraySlice[i] = Convert.ToByte(255 - Convert.ToInt32(DistanceMask[i]));
+
+            }
+            UpdateTextureOutput(CurrentXraySlice);
+            this.PanelOutputImage.Invalidate();
+
         }
 
         private void ButtonDICOMSaveClick(object sender, EventArgs e)
