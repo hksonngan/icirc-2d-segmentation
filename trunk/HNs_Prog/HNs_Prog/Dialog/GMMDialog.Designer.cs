@@ -34,7 +34,18 @@
             this.RadioButtonGMMIntensity = new System.Windows.Forms.RadioButton();
             this.RadioButtonGMMIVesselness = new System.Windows.Forms.RadioButton();
             this.RadioButtonGMMPerPixelIntensity = new System.Windows.Forms.RadioButton();
+            this.RadioButtonGMMIFK = new System.Windows.Forms.RadioButton();
             this.SuspendLayout();
+            // 
+            // ButtonRun
+            // 
+            this.ButtonRun.Location = new System.Drawing.Point(13, 227);
+            this.ButtonRun.Name = "ButtonRun";
+            this.ButtonRun.Size = new System.Drawing.Size(369, 23);
+            this.ButtonRun.TabIndex = 0;
+            this.ButtonRun.Text = "Run";
+            this.ButtonRun.UseVisualStyleBackColor = true;
+            this.ButtonRun.Click += new System.EventHandler(this.ButtonRunClick);
             // 
             // RadioButtonGMMIntensity
             // 
@@ -61,13 +72,25 @@
             this.RadioButtonGMMIVesselness.UseVisualStyleBackColor = true;
             this.RadioButtonGMMIVesselness.CheckedChanged += new System.EventHandler(this.RadioButtonCheckedChanged);
             // 
+            // RadioButtonGMMIFK
+            // 
+            this.RadioButtonGMMIFK.AutoSize = true;
+            this.RadioButtonGMMIFK.Location = new System.Drawing.Point(13, 59);
+            this.RadioButtonGMMIFK.Name = "RadioButtonGMMIFK";
+            this.RadioButtonGMMIFK.Size = new System.Drawing.Size(237, 16);
+            this.RadioButtonGMMIFK.TabIndex = 3;
+            this.RadioButtonGMMIFK.TabStop = true;
+            this.RadioButtonGMMIFK.Text = "Intensity-Frangi-Krissian GMM Model";
+            this.RadioButtonGMMIFK.UseVisualStyleBackColor = true;
+            this.RadioButtonGMMIFK.CheckedChanged += new System.EventHandler(this.RadioButtonCheckedChanged);
+            // 
             // RadioButtonGMMSCOriginal
             // 
             this.RadioButtonGMMSCOriginal.AutoSize = true;
-            this.RadioButtonGMMSCOriginal.Location = new System.Drawing.Point(13, 58);
+            this.RadioButtonGMMSCOriginal.Location = new System.Drawing.Point(13, 81);
             this.RadioButtonGMMSCOriginal.Name = "RadioButtonGMMSCOriginal";
             this.RadioButtonGMMSCOriginal.Size = new System.Drawing.Size(308, 16);
-            this.RadioButtonGMMSCOriginal.TabIndex = 3;
+            this.RadioButtonGMMSCOriginal.TabIndex = 4;
             this.RadioButtonGMMSCOriginal.Text = "Original Spatial-Color GMM Model (Ting Yu et al.)";
             this.RadioButtonGMMSCOriginal.UseVisualStyleBackColor = true;
             this.RadioButtonGMMSCOriginal.CheckedChanged += new System.EventHandler(this.RadioButtonCheckedChanged);
@@ -75,10 +98,10 @@
             // RadioButtonGMMSIFrangi
             // 
             this.RadioButtonGMMSIFrangi.AutoSize = true;
-            this.RadioButtonGMMSIFrangi.Location = new System.Drawing.Point(13, 80);
+            this.RadioButtonGMMSIFrangi.Location = new System.Drawing.Point(13, 103);
             this.RadioButtonGMMSIFrangi.Name = "RadioButtonGMMSIFrangi";
             this.RadioButtonGMMSIFrangi.Size = new System.Drawing.Size(253, 16);
-            this.RadioButtonGMMSIFrangi.TabIndex = 4;
+            this.RadioButtonGMMSIFrangi.TabIndex = 5;
             this.RadioButtonGMMSIFrangi.Text = "Our Spatial-Intensity-Frangi GMM Model";
             this.RadioButtonGMMSIFrangi.UseVisualStyleBackColor = true;
             this.RadioButtonGMMSIFrangi.CheckedChanged += new System.EventHandler(this.RadioButtonCheckedChanged);
@@ -86,30 +109,21 @@
             // RadioButtonGMMPerPixelIntensity
             // 
             this.RadioButtonGMMPerPixelIntensity.AutoSize = true;
-            this.RadioButtonGMMPerPixelIntensity.Location = new System.Drawing.Point(13, 121);
+            this.RadioButtonGMMPerPixelIntensity.Location = new System.Drawing.Point(13, 157);
             this.RadioButtonGMMPerPixelIntensity.Name = "RadioButtonGMMPerPixelIntensity";
             this.RadioButtonGMMPerPixelIntensity.Size = new System.Drawing.Size(277, 16);
-            this.RadioButtonGMMPerPixelIntensity.TabIndex = 5;
+            this.RadioButtonGMMPerPixelIntensity.TabIndex = 6;
             this.RadioButtonGMMPerPixelIntensity.TabStop = true;
             this.RadioButtonGMMPerPixelIntensity.Text = "Per-Pixel Intensity GMM Model (Chris et al.)";
             this.RadioButtonGMMPerPixelIntensity.UseVisualStyleBackColor = true;
             this.RadioButtonGMMPerPixelIntensity.CheckedChanged += new System.EventHandler(this.RadioButtonCheckedChanged);
-            // 
-            // ButtonRun
-            // 
-            this.ButtonRun.Location = new System.Drawing.Point(13, 227);
-            this.ButtonRun.Name = "ButtonRun";
-            this.ButtonRun.Size = new System.Drawing.Size(369, 23);
-            this.ButtonRun.TabIndex = 0;
-            this.ButtonRun.Text = "Run";
-            this.ButtonRun.UseVisualStyleBackColor = true;
-            this.ButtonRun.Click += new System.EventHandler(this.ButtonRunClick);
             // 
             // GMMDialog
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(394, 262);
+            this.Controls.Add(this.RadioButtonGMMIFK);
             this.Controls.Add(this.RadioButtonGMMPerPixelIntensity);
             this.Controls.Add(this.RadioButtonGMMIVesselness);
             this.Controls.Add(this.RadioButtonGMMIntensity);
@@ -132,5 +146,6 @@
         private System.Windows.Forms.RadioButton RadioButtonGMMIntensity;
         private System.Windows.Forms.RadioButton RadioButtonGMMIVesselness;
         private System.Windows.Forms.RadioButton RadioButtonGMMPerPixelIntensity;
+        private System.Windows.Forms.RadioButton RadioButtonGMMIFK;
     }
 }

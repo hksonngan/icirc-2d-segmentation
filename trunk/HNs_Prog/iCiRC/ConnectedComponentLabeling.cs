@@ -69,7 +69,8 @@ namespace iCiRC
                 int CurrentKey = Patterns.Keys.ElementAt(i);
                 if (Patterns[CurrentKey].Count > MinSize && Patterns[CurrentKey].Count < MaxSize)
                 {
-                    LabelNum++;
+                    if (LabelNum < 254)
+                        LabelNum++;
                     for (int j = 0; j < Patterns[CurrentKey].Count; j++)
                         OutputFrameMask[Patterns[CurrentKey][j]] = Convert.ToByte(LabelNum);
                 }

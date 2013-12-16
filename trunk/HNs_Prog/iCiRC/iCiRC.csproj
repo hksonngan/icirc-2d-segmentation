@@ -70,6 +70,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BallFilter.cs" />
     <Compile Include="Clustering.cs" />
     <Compile Include="ConnectedComponentLabeling.cs" />
     <Compile Include="Constants.cs" />
@@ -81,6 +82,7 @@
     <Compile Include="PerPixelIntensityGMMTracking.cs" />
     <Compile Include="Skeletonization.cs" />
     <Compile Include="SRGClustering.cs" />
+    <Compile Include="Tracking\AdaptiveIVesselnessGMMTracking.cs" />
     <Compile Include="Tracking\IFKGMMTracking.cs" />
     <Compile Include="Tracking\IVesselnessGMMTracking.cs" />
     <Compile Include="Tracking\IntensityGMMTracking.cs" />

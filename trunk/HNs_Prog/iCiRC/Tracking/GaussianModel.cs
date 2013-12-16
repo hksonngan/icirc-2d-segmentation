@@ -138,6 +138,48 @@ namespace iCiRC.Tracking
     }
 
     //---------------------------------------------------------------------------
+    /** @class IVesselnessGaussianModel
+        @author Hyunna Lee
+        @date 2013.11.22
+        @brief GMM Model parameters for intensity component
+    */
+    //-------------------------------------------------------------------------
+    class AdaptiveIVesselnessGaussianModel : IVesselnessGaussianModel
+    {
+        public bool IsBackComponent;
+
+        public AdaptiveIVesselnessGaussianModel()
+        {
+            IVesselnessMean = new Vector(2);
+            IVesselnessCoVar = new Matrix(2, 2);
+            Weight = 0.0;
+            IsBackComponent = true;
+        }
+
+        //---------------------------------------------------------------------------
+        /** @brief Gaussian probability density function for bivariate
+            @author Hyunna Lee
+            @date 2013.11.22
+            @param Intensity : intensity component of the current instant 
+            @param Vesselness : vesselness component of the current instant 
+            @return Probability of the current instant
+        */
+        //-------------------------------------------------------------------------
+        public double GetGaussianProbability(double Intensity, double Vesselness)
+        {
+            Vector DifferenceVector = new Vector(2);
+            DifferenceVector[0] = Intensity - IVesselnessMean[0];
+            DifferenceVector[1] = Vesselness - IVesselnessMean[1];
+            Matrix InvCoVar = new Matrix(2, 2);
+            InvCoVar = IVesselnessCoVar.Inverse();
+            double det = IVesselnessCoVar.Determinant();
+            double Difference = DifferenceVector[0] * (DifferenceVector[0] * InvCoVar[0, 0] + DifferenceVector[1] * InvCoVar[1, 0])
+                              + DifferenceVector[1] * (DifferenceVector[0] * InvCoVar[0, 1] + DifferenceVector[1] * InvCoVar[1, 1]);
+            return Math.Exp(-Difference / 2.0) / (2.0 * Math.PI * Math.Sqrt(det));
+        }
+    }
+
+    //---------------------------------------------------------------------------
     /** @class IFKGaussianModel
         @author Hyunna Lee
         @date 2013.11.28
@@ -149,12 +191,14 @@ namespace iCiRC.Tracking
         public Vector IVesselnessMean;      ///< Mean of intensity-vesselness component (I, V)
         public Matrix IVesselnessCoVar;     ///< Covariance matrix of intensity-vesselness component (II, IV; VI, VV)
         public double Weight;               ///< Weight of this GMM component in the mixture model
+        public bool IsBackComponent;        ///< 
 
         public IFKGaussianModel()
         {
             IVesselnessMean = new Vector(3);
             IVesselnessCoVar = new Matrix(3, 3);
             Weight = 0.0;
+            IsBackComponent = true;
         }
 
         //---------------------------------------------------------------------------
@@ -169,6 +213,14 @@ namespace iCiRC.Tracking
         //-------------------------------------------------------------------------
         public double GetGaussianProbability(double Intensity, double Frangi, double Krissian)
         {
+            /*
+            if (!IsBackComponent)
+            {
+                Intensity = Math.Max(Intensity, IVesselnessMean[0]);
+                Frangi = Math.Min(Frangi, IVesselnessMean[1]);
+                Krissian = Math.Min(Krissian, IVesselnessMean[2]);
+            }
+             * */
             Vector DifferenceVector = new Vector(3);
             DifferenceVector[0] = Intensity - IVesselnessMean[0];
             DifferenceVector[1] = Frangi - IVesselnessMean[1];
