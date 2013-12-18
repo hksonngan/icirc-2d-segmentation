@@ -114,6 +114,19 @@ namespace iCiRC.Tracking
             Weight = 0.0;
         }
 
+        public IVesselnessGaussianModel(IVesselnessGaussianModel OldModel)
+        {
+            IVesselnessMean = new Vector(2);
+            IVesselnessCoVar = new Matrix(2, 2);
+            IVesselnessMean[0] = OldModel.IVesselnessMean[0];
+            IVesselnessMean[1] = OldModel.IVesselnessMean[1];
+            IVesselnessCoVar[0, 0] = OldModel.IVesselnessCoVar[0, 0];
+            IVesselnessCoVar[0, 1] = OldModel.IVesselnessCoVar[0, 1];
+            IVesselnessCoVar[1, 0] = OldModel.IVesselnessCoVar[1, 0];
+            IVesselnessCoVar[1, 1] = OldModel.IVesselnessCoVar[1, 1];
+            Weight = OldModel.Weight;
+        }
+
         //---------------------------------------------------------------------------
         /** @brief Gaussian probability density function for bivariate
             @author Hyunna Lee
@@ -134,6 +147,17 @@ namespace iCiRC.Tracking
             double Difference = DifferenceVector[0] * (DifferenceVector[0] * InvCoVar[0, 0] + DifferenceVector[1] * InvCoVar[1, 0])
                               + DifferenceVector[1] * (DifferenceVector[0] * InvCoVar[0, 1] + DifferenceVector[1] * InvCoVar[1, 1]);
             return Math.Exp(-Difference / 2.0) / (2.0 * Math.PI * Math.Sqrt(det));
+        }
+
+        public void BlendingModel(IVesselnessGaussianModel BlendingModel, double BlendingWeight)
+        {
+            IVesselnessMean[0] = BlendingModel.IVesselnessMean[0] * BlendingWeight + IVesselnessMean[0] * (1.0 - BlendingWeight);
+            IVesselnessMean[1] = BlendingModel.IVesselnessMean[1] * BlendingWeight + IVesselnessMean[1] * (1.0 - BlendingWeight);
+            IVesselnessCoVar[0, 0] = BlendingModel.IVesselnessCoVar[0, 0] * BlendingWeight + IVesselnessCoVar[0, 0] * (1.0 - BlendingWeight);
+            IVesselnessCoVar[0, 1] = BlendingModel.IVesselnessCoVar[0, 1] * BlendingWeight + IVesselnessCoVar[0, 1] * (1.0 - BlendingWeight);
+            IVesselnessCoVar[1, 0] = BlendingModel.IVesselnessCoVar[1, 0] * BlendingWeight + IVesselnessCoVar[1, 0] * (1.0 - BlendingWeight);
+            IVesselnessCoVar[1, 1] = BlendingModel.IVesselnessCoVar[1, 1] * BlendingWeight + IVesselnessCoVar[1, 1] * (1.0 - BlendingWeight);
+            Weight = BlendingModel.Weight * BlendingWeight + Weight * (1.0 - BlendingWeight);
         }
     }
 
