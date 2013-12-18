@@ -56,7 +56,7 @@ namespace iCiRC
             for (int i = 0; i < FramePixelNum; i++)
                 MaxProbability = Math.Max(MaxProbability, DistanceMap[i]);
             for (int i = 0; i < FramePixelNum; i++)
-                DistanceMap[i] /= MaxProbability;
+                DistanceMap[i] /= (MaxProbability * 2.0);
         }
 
         private void RunEuclideanDistance()
