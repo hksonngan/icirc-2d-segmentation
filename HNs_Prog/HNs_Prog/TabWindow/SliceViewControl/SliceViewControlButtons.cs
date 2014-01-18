@@ -43,9 +43,18 @@ namespace HNs_Prog
                 const int ScaleNum = 4;
                 double[] ScaleArray = {2.12, 2.72, 3.5, 4.0};
 
+                //for (int i = 0; i < VolumeData.ZNum; i++)
+                //{
+                //}
                 ResultMap = map.RunFrangiMethod2D(VolumeData.XNum, VolumeData.YNum, CurrentXraySlice, ScaleNum, ScaleArray);
                 for (int i = 0; i < VolumeData.XNum * VolumeData.YNum; i++)
-                    CurrentXraySlice[i] = Convert.ToByte(ResultMap[i] * 255.0);
+                {
+                    if (ResultMap[i] > 0.5)
+                        CurrentXraySlice[i] = 255;
+                    else
+                        CurrentXraySlice[i] = 0;
+                    //CurrentXraySlice[i] = Convert.ToByte(ResultMap[i] * 255.0);
+                }
             }
             else if (VesselEnhancementDialog.MethodIndex == VEDialog.VEMethod.KrissianModel)
             {
