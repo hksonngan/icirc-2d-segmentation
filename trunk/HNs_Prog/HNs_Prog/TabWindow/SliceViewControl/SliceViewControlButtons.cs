@@ -41,12 +41,14 @@ namespace HNs_Prog
             if (VesselEnhancementDialog.MethodIndex == VEDialog.VEMethod.Frangi)
             {
                 const int ScaleNum = 4;
-                double[] ScaleArray = {2.12, 2.72, 3.5, 4.0};
+                double[] ScaleArray = { 2.12, 2.72, 3.5, 4.0 };
 
-                //for (int i = 0; i < VolumeData.ZNum; i++)
-                //{
-                //}
-                ResultMap = map.RunFrangiMethod2D(VolumeData.XNum, VolumeData.YNum, CurrentXraySlice, ScaleNum, ScaleArray);
+                for (int i = 0; i < VolumeData.ZNum; i++)
+                {
+                    ResultMap = map.RunFrangiMethod2D(VolumeData.XNum, VolumeData.YNum, CurrentXraySlice, ScaleNum, ScaleArray);
+                }
+                //ResultMap = map.RunFrangiMethod2D(VolumeData.XNum, VolumeData.YNum, CurrentXraySlice, ScaleNum, ScaleArray);
+                
                 for (int i = 0; i < VolumeData.XNum * VolumeData.YNum; i++)
                 {
                     if (ResultMap[i] > 0.5)
@@ -192,25 +194,26 @@ namespace HNs_Prog
             this.PanelSliceImage.Invalidate(); 
             */
 
-            DistanceTransform DistanceProcessor = new DistanceTransform(VolumeData.XNum, VolumeData.YNum);
-            double[] DistanceMask = DistanceProcessor.RunDistanceMap(CurrentXraySlice);
-            CurrentXraySlice.Initialize();
-            for (int i = 0; i < FramePixelNum; i++)
-                CurrentXraySlice[i] = Convert.ToByte(255.0 * DistanceMask[i]);
-            /*
-            for (int i = 0; i < FramePixelNum; i++)
-            {
-                if (DistanceMask[i] < 0.0)
-                    CurrentXraySlice[i] = 255;
-                else if (DistanceMask[i] < 255.0)
-                    CurrentXraySlice[i] = Convert.ToByte(255 - Convert.ToInt32(DistanceMask[i]));
+                DistanceTransform DistanceProcessor = new DistanceTransform(VolumeData.XNum, VolumeData.YNum);
+                double[] DistanceMask = DistanceProcessor.RunDistanceMap(CurrentXraySlice);
+                CurrentXraySlice.Initialize();
+                for (int i = 0; i < FramePixelNum; i++)
+                    CurrentXraySlice[i] = Convert.ToByte(255.0 * DistanceMask[i]);
+                /*
+                for (int i = 0; i < FramePixelNum; i++)
+                {
+                    if (DistanceMask[i] < 0.0)
+                        CurrentXraySlice[i] = 255;
+                    else if (DistanceMask[i] < 255.0)
+                        CurrentXraySlice[i] = Convert.ToByte(255 - Convert.ToInt32(DistanceMask[i]));
+
+                }
+                 * */
+                UpdateTextureOutput(CurrentXraySlice);
+                this.PanelOutputImage.Invalidate();
 
             }
-             * */
-            UpdateTextureOutput(CurrentXraySlice);
-            this.PanelOutputImage.Invalidate();
-
-        }
+        
 
         private void ButtonDICOMSaveClick(object sender, EventArgs e)
         {
