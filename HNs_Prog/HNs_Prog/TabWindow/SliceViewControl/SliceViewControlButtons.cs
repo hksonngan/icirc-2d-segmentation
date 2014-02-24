@@ -40,8 +40,6 @@ namespace HNs_Prog
 
             if (VesselEnhancementDialog.MethodIndex == VEDialog.VEMethod.Frangi)
             {
-                //const int ScaleNum = 4;
-                //double[] ScaleArray = {2.12, 2.72, 3.5, 4.0};
                 const int ScaleNum = 5;
                 double[] ScaleArray = { 2.12, 2.72, 3.5, 4.0, 5.0 };
 
