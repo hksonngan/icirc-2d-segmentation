@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using ManagedMRF;
+using ManagedLevelSet;
 using MathNet.Numerics.LinearAlgebra;
 
 namespace iCiRC.Tracking
@@ -50,16 +51,20 @@ namespace iCiRC.Tracking
             FrameVesselness.Initialize();
 
             const int EMIterNum = 5;
-            const int StartFrameIndex = 30;
+            const int StartFrameIndex = 21;
+            const int EndFrameIndex = 48;
 
-            ProgressWindow winProgress = new ProgressWindow("Vessel tracking...", 0, 10);
+            ProgressWindow winProgress = new ProgressWindow("Vessel tracking...", 0, EndFrameIndex - StartFrameIndex + 1);
             winProgress.Show();
 
             // For the first frame (Post-updating)
+            //PreProcessingUsingHomomorphicFilter(StartFrameIndex);
             ComputeVesselness(StartFrameIndex);
+
             SegmentationUsingVesselnessThresholding(StartFrameIndex);
             PostProcessingUsingCCL(StartFrameIndex, 50);
-            PostProcessingUsingSRG(StartFrameIndex);
+            //SegmentationUsingChanVese(StartFrameIndex);
+
             InitializeGMMModelParameters(StartFrameIndex);
             for (int iter = 0; iter < EMIterNum; iter++)        // EM interation
             {
@@ -69,19 +74,20 @@ namespace iCiRC.Tracking
             winProgress.Increment(1);
 
             // For each frame 
-            for (int f = StartFrameIndex + 1; f < StartFrameIndex + 10; f++)
+            for (int f = StartFrameIndex + 1; f <= EndFrameIndex; f++)
             {
+                //PreProcessingUsingHomomorphicFilter(f);
                 ComputeVesselness(f);
 
                 // Segmentation
-                SegmentationUsingDataCost(f);
+                SegmentationUsingDataCost(f); 
                 PostProcessingUsingCCL(f, 50);
-                PostProcessingUsingSRG(f);
+                //SegmentationUsingChanVese(f);
 
-                //int TotalModelNum = BackModelNum + ForeModelNum;
-                //IVesselnessGaussianModel[] OldGMMComponent = new IVesselnessGaussianModel[TotalModelNum];
-                //for (int i = 0; i < TotalModelNum; i++)
-                //    OldGMMComponent[i] = new IVesselnessGaussianModel(GMMComponent[i]);
+                int TotalModelNum = BackModelNum + ForeModelNum;
+                IVesselnessGaussianModel[] OldGMMComponent = new IVesselnessGaussianModel[TotalModelNum];
+                for (int i = 0; i < TotalModelNum; i++)
+                    OldGMMComponent[i] = new IVesselnessGaussianModel(GMMComponent[i]);
 
                 // Post-undating EM
                 for (int iter = 0; iter < EMIterNum; iter++)
@@ -90,8 +96,8 @@ namespace iCiRC.Tracking
                     MaximizationStepInPostUpdating(f, PosteriorProbability);
                 }
 
-                //for (int i = 0; i < TotalModelNum; i++)
-                //    GMMComponent[i].BlendingModel(OldGMMComponent[i], 0.5);
+                for (int i = 0; i < TotalModelNum; i++)
+                    GMMComponent[i].BlendingModel(OldGMMComponent[i], 0.5);
 
                 winProgress.Increment(1);
             }
@@ -106,7 +112,7 @@ namespace iCiRC.Tracking
             int CurrentFramePixelOffset = CurrentFrameIndex * FramePixelNum;
 
             // Thresholding
-            const double VesselnessThreshold = 255.0 * 0.2;
+            const double VesselnessThreshold = 255.0 * 0.15;
             //const ushort IntensityThreshold = 80;
             for (int i = 0; i < FramePixelNum; i++)
             {
@@ -586,6 +592,86 @@ namespace iCiRC.Tracking
             }
         }
 
+        //---------------------------------------------------------------------------
+        /** @brief Segmentation of the each frame using graph-cut algorithm
+            @author Hyunna Lee
+            @date 2013.11.12
+            @param CurrentFrameIndex : the index of the current frame
+            @todo To implement the graph-cut algorithm using ManagedMRF classes
+        */
+        //-------------------------------------------------------------------------
+        unsafe void SegmentationUsingChanVese(int CurrentFrameIndex)
+        {
+            const int CVIterNum = 30;
+            int FramePixelNum = XNum * YNum;
+            int CurrentFramePixelOffset = CurrentFrameIndex * FramePixelNum;
+
+            // Bounding Box
+            /*
+            int MinX = XNum - 1;
+            int MinY = YNum - 1;
+            int MaxX = 0;
+            int MaxY = 0;
+            for (int y = 0; y < YNum; y++)
+            {
+                for (int x = 0; x < XNum; x++)
+                {
+                    int CurrentPixelIndex = y * XNum + x;
+                    if (FrameMask[CurrentFramePixelOffset + CurrentPixelIndex] == Constants.LABEL_FOREGROUND)
+                    {
+                        MinX = Math.Min(MinX, x);
+                        MinY = Math.Min(MinY, y);
+                        MaxX = Math.Max(MaxX, x);
+                        MaxY = Math.Max(MaxY, y);
+                    }
+                }
+            }
+		    MinX = Math.Max(0, MinX - 10);
+		    MinY = Math.Max(0, MinY - 10);
+		    MaxX = Math.Min(XNum - 1, MaxX + 10);
+		    MaxY = Math.Min(YNum - 1, MaxY + 10);
+		    int BoundingXNum = MaxX - MinX + 1;
+		    int BoundingYNum = MaxY - MinY + 1;
+             * */
+	    
+		    short[] FrameDensityBuffer = new short[FramePixelNum];
+		    byte[] FrameSrcMaskBuffer = new byte[FramePixelNum];
+		    byte[] FrameDesMaskBuffer = new byte[FramePixelNum];
+            for (int i = 0; i < FramePixelNum; i++)
+            {
+                FrameDensityBuffer[i] = Convert.ToInt16(FrameIntensity[CurrentFramePixelOffset + i]);
+                FrameSrcMaskBuffer[i] = FrameMask[CurrentFramePixelOffset + i];
+            }
+            FrameDesMaskBuffer.Initialize();
+            
+            // Dilation operation
+            /*
+            MorphologicalFilter MorphologicalProcessor = new MorphologicalFilter(XNum, YNum);
+            MorphologicalProcessor.FType = MorphologicalFilter.FilterType.Dilation;
+            for (int i = 0; i < 8; i++)
+            {
+                byte[] FilteredCurrentXraySlice = MorphologicalProcessor.RunFiltering(FrameSrcMaskBuffer);
+                FrameSrcMaskBuffer = (byte[])FilteredCurrentXraySlice.Clone();
+            }
+             * */
+
+            // Run Chan-Vese algorithm
+            fixed (short* BufDensity = FrameDensityBuffer)
+            {
+                fixed (byte* BufSrcMask = FrameSrcMaskBuffer, BufDesMask = FrameDesMaskBuffer)
+                {
+                    ChanVeseWrap ChanVese = new ChanVeseWrap(XNum, YNum, BufDensity);
+                    ChanVese.SetParameters(1.0f, 1.0f, 0.1f, 1, 1, CVIterNum);
+                    ChanVese.SetInitialObject(BufSrcMask);
+                    ChanVese.Run(BufDesMask);
+                    ChanVese.GetOnlyObject(BufDesMask);
+                }
+            }
+
+            for (int i = 0; i < FramePixelNum; i++)
+                FrameMask[CurrentFramePixelOffset + i] = FrameDesMaskBuffer[i];
+        }
+
         private void ComputeVesselness(int CurrentFrameIndex)
         {
             int FramePixelNum = XNum * YNum;
@@ -607,6 +693,21 @@ namespace iCiRC.Tracking
                 FrameVesselness[CurrentFrameOffset + i] = VesselnessMap[i] * 255.0;
         }
 
+        private void PreProcessingUsingHomomorphicFilter(int CurrentFrameIndex)
+        {
+            int FramePixelNum = XNum * YNum;
+            int CurrentFrameOffset = CurrentFrameIndex * FramePixelNum;
+            byte[] CurrentXraySlice = new byte[FramePixelNum];
+            for (int i = 0; i < FramePixelNum; i++)
+                CurrentXraySlice[i] = Convert.ToByte(FrameIntensity[CurrentFrameOffset + i]);
+
+            // Homophrphic filtering
+            HomomorphicFilter FilteringProcessor = new HomomorphicFilter(XNum, YNum);
+            byte[] FilteredCurrentXraySlice = FilteringProcessor.RunFiltering(CurrentXraySlice);
+            for (int i = 0; i < FramePixelNum; i++)
+                FrameIntensity[CurrentFrameOffset + i] = FilteredCurrentXraySlice[i];
+        }
+
         private void PostProcessingUsingCCL(int CurrentFrameIndex, int MinSize)
         {
             int FramePixelNum = XNum * YNum;
@@ -617,7 +718,42 @@ namespace iCiRC.Tracking
 
             // CCL
             ConnectedComponentLabeling CCLProcessor = new ConnectedComponentLabeling(XNum, YNum);
-            int LabelNum = CCLProcessor.RunCCL(CurrentXraySlice, MinSize, FramePixelNum);
+            int LabelNum = CCLProcessor.RunCCL(CurrentXraySlice, MinSize, FramePixelNum / 10);
+
+            // born removal
+            int[] LabelSize = new int[LabelNum];
+            int[] LabelCenterX = new int[LabelNum];
+            int[] LabelCenterY = new int[LabelNum];
+            bool[] RemoveCheck = new bool[LabelNum];
+            LabelSize.Initialize();
+            LabelCenterX.Initialize();
+            LabelCenterY.Initialize();
+            RemoveCheck.Initialize();
+            for (int i = 0; i < FramePixelNum; i++)
+            {
+                if (CCLProcessor.OutputFrameMask[i] != Constants.LABEL_BACKGROUND)
+                {
+                    int LabelArrayIndex = Convert.ToInt32(CCLProcessor.OutputFrameMask[i]) - 1;
+                    LabelSize[LabelArrayIndex]++;
+                    LabelCenterX[LabelArrayIndex] += (i % XNum);
+                    LabelCenterY[LabelArrayIndex] += (i / XNum);
+                }
+            }
+            for (int i = 0; i < LabelNum; i++)
+            {
+                if (LabelCenterX[i] / LabelSize[i] < 70 || LabelCenterX[i] / LabelSize[i] > XNum - 70 || LabelCenterY[i] / LabelSize[i] > YNum - 70)
+                    RemoveCheck[i] = true;
+            }
+            for (int i = 0; i < FramePixelNum; i++)
+            {
+                if (CCLProcessor.OutputFrameMask[i] != Constants.LABEL_BACKGROUND)
+                {
+                    int LabelArrayIndex = Convert.ToInt32(CCLProcessor.OutputFrameMask[i]) - 1;
+                    if (RemoveCheck[LabelArrayIndex])
+                        CCLProcessor.OutputFrameMask[i] = Constants.LABEL_BACKGROUND;
+                }
+            }
+
             for (int i = 0; i < FramePixelNum; i++)
             {
                 if (CCLProcessor.OutputFrameMask[i] == Constants.LABEL_BACKGROUND)

@@ -107,6 +107,10 @@
       <Project>{013BE49F-D662-4061-B4CF-599EF61DC92B}</Project>
       <Name>AlgLib</Name>
     </ProjectReference>
+    <ProjectReference Include="..\ManagedLevelSet\ManagedLevelSet.vcxproj">
+      <Project>{FECAC152-3A93-4BD2-9E3C-085066915982}</Project>
+      <Name>ManagedLevelSet</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ManagedMRF\ManagedMRF.vcxproj">
       <Project>{E486D03D-0F7A-43EA-8743-5D90A973D7B0}</Project>
       <Name>ManagedMRF</Name>
