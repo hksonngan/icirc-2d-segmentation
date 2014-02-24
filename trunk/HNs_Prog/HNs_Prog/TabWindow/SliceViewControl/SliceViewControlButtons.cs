@@ -40,8 +40,10 @@ namespace HNs_Prog
 
             if (VesselEnhancementDialog.MethodIndex == VEDialog.VEMethod.Frangi)
             {
-                const int ScaleNum = 4;
-                double[] ScaleArray = { 2.12, 2.72, 3.5, 4.0 };
+                //const int ScaleNum = 4;
+                //double[] ScaleArray = {2.12, 2.72, 3.5, 4.0};
+                const int ScaleNum = 5;
+                double[] ScaleArray = { 2.12, 2.72, 3.5, 4.0, 5.0 };
 
                 for (int i = 0; i < VolumeData.ZNum; i++)
                 {
@@ -180,7 +182,7 @@ namespace HNs_Prog
             for (int i = 0; i < FramePixelNum; i++)
                 CurrentXraySlice[i] = VolumeData.VolumeMask[CurrentFrameOffset + i];
 
-            /*
+            // Thinning
             Skeletonization ThinningProcessor = new Skeletonization(VolumeData.XNum, VolumeData.YNum);
             ThinningProcessor.AlgType = Skeletonization.AlgorithmType.RosenfeldThinning;
             byte[] ThinningMask = ThinningProcessor.RunSkeletonization(CurrentXraySlice);
@@ -192,25 +194,28 @@ namespace HNs_Prog
             this.CheckBoxMasking.Enabled = true;
             this.CheckBoxMasking.Checked = true;
             this.PanelSliceImage.Invalidate(); 
-            */
 
-                DistanceTransform DistanceProcessor = new DistanceTransform(VolumeData.XNum, VolumeData.YNum);
-                double[] DistanceMask = DistanceProcessor.RunDistanceMap(CurrentXraySlice);
-                CurrentXraySlice.Initialize();
-                for (int i = 0; i < FramePixelNum; i++)
-                    CurrentXraySlice[i] = Convert.ToByte(255.0 * DistanceMask[i]);
-                /*
-                for (int i = 0; i < FramePixelNum; i++)
-                {
-                    if (DistanceMask[i] < 0.0)
-                        CurrentXraySlice[i] = 255;
-                    else if (DistanceMask[i] < 255.0)
-                        CurrentXraySlice[i] = Convert.ToByte(255 - Convert.ToInt32(DistanceMask[i]));
+            /*
+            // Prior probability based on the distance map
+            DistanceTransform DistanceProcessor = new DistanceTransform(VolumeData.XNum, VolumeData.YNum);
+            double[] DistanceMask = DistanceProcessor.RunDistanceMap(CurrentXraySlice);
+            CurrentXraySlice.Initialize();
+            for (int i = 0; i < FramePixelNum; i++)
+                CurrentXraySlice[i] = Convert.ToByte(255.0 * DistanceMask[i]);
+          
+            // Distance map visualization
+            /*
+            for (int i = 0; i < FramePixelNum; i++)
+            {
+                if (DistanceMask[i] < 0.0)
+                    CurrentXraySlice[i] = 255;
+                else if (DistanceMask[i] < 255.0)
+                    CurrentXraySlice[i] = Convert.ToByte(255 - Convert.ToInt32(DistanceMask[i]));
+            }
+             * */
 
-                }
-                 * */
-                UpdateTextureOutput(CurrentXraySlice);
-                this.PanelOutputImage.Invalidate();
+            //UpdateTextureOutput(CurrentXraySlice);
+            //this.PanelOutputImage.Invalidate();
 
             }
         
@@ -278,7 +283,10 @@ namespace HNs_Prog
                     uint[] PixelArray = (uint[])TextureImageFrame.LockRectangle(typeof(uint), 0, LockFlags.Discard, ImagePixelNum);
                     for (int i = 0; i < ImagePixelNum; i++)
                     {
-                        byte CurrentPixelIntensity = Convert.ToByte(VolumeData.VolumeDensity[CurrentFrameIndex + i]);
+                        byte CurrentPixelIntensity = 0x00;
+                        if (VolumeData.VolumeMask[CurrentFrameIndex + i] != 0x00)
+                            CurrentPixelIntensity = 0xff;
+                        //byte CurrentPixelIntensity = Convert.ToByte(VolumeData.VolumeDensity[CurrentFrameIndex + i]);
                         PixelArray[i] = (uint)(Color.FromArgb(CurrentPixelIntensity, CurrentPixelIntensity, CurrentPixelIntensity)).ToArgb();
                     }
                     TextureImageFrame.UnlockRectangle(0);

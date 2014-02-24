@@ -158,8 +158,8 @@ namespace iCiRC
                         GradientVector[0] = GaussianGradientFilters[0].Run2D(XNum, YNum, ImageIntensity, OrthogonalPixelY * XNum + OrthogonalPixelX);
                         GradientVector[1] = GaussianGradientFilters[1].Run2D(XNum, YNum, ImageIntensity, OrthogonalPixelY * XNum + OrthogonalPixelX);
                         double OrthogonalResponse2 = GradientVector[0] * OrthogonalVector[0] + GradientVector[1] * OrthogonalVector[1];
-                        double KrissianVesselness = Math.Min(Math.Abs(OrthogonalResponse1), Math.Abs(OrthogonalResponse2)) * Scale[s] / EdgeThreshold;
-                        KrissianVesselness = 1.0 - Math.Exp(-(KrissianVesselness * KrissianVesselness) / (2.0 * gamma * gamma));
+                        double KrissianVesselness = Math.Min(Math.Abs(OrthogonalResponse1), Math.Abs(OrthogonalResponse2)) * Scale[s];// / EdgeThreshold;
+                        //KrissianVesselness = 1.0 - Math.Exp(-(KrissianVesselness * KrissianVesselness) / (2.0 * gamma * gamma));
                         // Get the maximum filter response
                         Response[y * XNum + x] = Math.Max(Response[y * XNum + x], KrissianVesselness);
                     }
@@ -189,7 +189,7 @@ namespace iCiRC
             double[] Vesselness = new double[XNum * YNum];
             Vesselness.Initialize();
             int PixelNum = XNum * YNum;
-            const double alpha = 0.5, beta = 1.5, gamma = 0.2, EdgeThreshold = 50.0;
+            const double alpha = 0.5, beta = 1.5, gamma = 0.15, EdgeThreshold = 50.0;
             double Tau = Math.Sqrt(3.0);
 
             // Multi-scale

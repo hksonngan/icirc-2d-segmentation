@@ -321,15 +321,6 @@ namespace iCiRC
             SetArray[5].Add(3);
             SetArray[6].Add(3); SetArray[6].Add(4); SetArray[6].Add(5);
             SetArray[7].Add(4); SetArray[7].Add(6);
-            /*
-            SetArray[1].Add(0);
-            SetArray[2].Add(1);
-            SetArray[3].Add(0);
-            SetArray[4].Add(2);
-            SetArray[5].Add(3);
-            SetArray[6].Add(5);
-            SetArray[7].Add(4); SetArray[7].Add(6);
-             */
 
             LabelArray.Initialize();
             for (int i = 0; i < 8; i++)
