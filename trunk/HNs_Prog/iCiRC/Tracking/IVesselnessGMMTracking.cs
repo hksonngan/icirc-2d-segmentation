@@ -51,8 +51,8 @@ namespace iCiRC.Tracking
             FrameVesselness.Initialize();
 
             const int EMIterNum = 5;
-            const int StartFrameIndex = 21;
-            const int EndFrameIndex = 48;
+            const int StartFrameIndex = 17;
+            const int EndFrameIndex = 32;
 
             ProgressWindow winProgress = new ProgressWindow("Vessel tracking...", 0, EndFrameIndex - StartFrameIndex + 1);
             winProgress.Show();
