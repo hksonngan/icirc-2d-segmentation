@@ -59,7 +59,6 @@ namespace HNs_Prog
                             VolumeData.VolumeMask[i * VolumeData.XNum * VolumeData.YNum + j] = 255;
                     }
                 }
-                //ResultMap = map.RunFrangiMethod2D(VolumeData.XNum, VolumeData.YNum, CurrentXraySlice, ScaleNum, ScaleArray);
                 
                 /*
                 for (int i = 0; i < VolumeData.XNum * VolumeData.YNum; i++)
