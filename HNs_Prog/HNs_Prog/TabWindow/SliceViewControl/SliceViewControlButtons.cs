@@ -25,6 +25,9 @@ namespace HNs_Prog
             for (int i = 0; i < VolumeData.XNum * VolumeData.YNum; i++)
                 CurrentXraySlice[i] = Convert.ToByte(VolumeData.VolumeDensity[CurrentSliceIndex * VolumeData.XNum * VolumeData.YNum + i]);
 
+            VolumeData.VolumeMask = new byte[VolumeData.XNum * VolumeData.YNum * VolumeData.ZNum];
+            VolumeData.VolumeMask.Initialize();
+
             // Pre-processing
             if (VesselEnhancementDialog.CheckedHomohorphicFiltering)
             {
@@ -45,10 +48,20 @@ namespace HNs_Prog
 
                 for (int i = 0; i < VolumeData.ZNum; i++)
                 {
+                    for (int j = 0; j < VolumeData.XNum * VolumeData.YNum; j++)
+                        CurrentXraySlice[j] = Convert.ToByte(VolumeData.VolumeDensity[i * VolumeData.XNum * VolumeData.YNum + j]);
+
                     ResultMap = map.RunFrangiMethod2D(VolumeData.XNum, VolumeData.YNum, CurrentXraySlice, ScaleNum, ScaleArray);
+
+                    for (int j = 0; j < VolumeData.XNum * VolumeData.YNum; j++)
+                    {
+                        if (ResultMap[j] > 0.4)
+                            VolumeData.VolumeMask[i * VolumeData.XNum * VolumeData.YNum + j] = 255;
+                    }
                 }
                 //ResultMap = map.RunFrangiMethod2D(VolumeData.XNum, VolumeData.YNum, CurrentXraySlice, ScaleNum, ScaleArray);
                 
+                /*
                 for (int i = 0; i < VolumeData.XNum * VolumeData.YNum; i++)
                 {
                     if (ResultMap[i] > 0.5)
@@ -56,7 +69,7 @@ namespace HNs_Prog
                     else
                         CurrentXraySlice[i] = 0;
                     //CurrentXraySlice[i] = Convert.ToByte(ResultMap[i] * 255.0);
-                }
+                }*/
             }
             else if (VesselEnhancementDialog.MethodIndex == VEDialog.VEMethod.KrissianModel)
             {
@@ -122,10 +135,11 @@ namespace HNs_Prog
                 VolumeData.VolumeMask.Initialize();
                 for (int i = 0; i < VolumeData.XNum * VolumeData.YNum; i++)
                     VolumeData.VolumeMask[CurrentSliceIndex * VolumeData.XNum * VolumeData.YNum + i] = ResultLabeling[i];
-
-                this.CheckBoxMasking.Enabled = true;
-                this.CheckBoxMasking.Checked = true;
             }
+
+            this.CheckBoxMasking.Enabled = true;
+            this.CheckBoxMasking.Checked = true;
+            this.PanelSliceImage.Invalidate();
 
             UpdateTextureOutput(CurrentXraySlice);
             this.PanelOutputImage.Invalidate();
