@@ -74,12 +74,31 @@ namespace HNs_Prog
             {
                 const int ScaleNum = 5;
                 double[] ScaleArray = { 2.12, 2.72, 3.5, 4.5, 6.0 };
+
+                for (int i = 0; i < VolumeData.ZNum; i++)
+                {
+                    for (int j = 0; j < VolumeData.XNum * VolumeData.YNum; j++)
+                        CurrentXraySlice[j] = Convert.ToByte(VolumeData.VolumeDensity[i * VolumeData.XNum * VolumeData.YNum + j]);
+
+                    ResultMap = map.RunKrissianModelMethod2D(VolumeData.XNum, VolumeData.YNum, CurrentXraySlice, ScaleNum, ScaleArray);
+
+                    for (int j = 0; j < VolumeData.XNum * VolumeData.YNum; j++)
+                    {
+                        if (ResultMap[j] > 0.3)
+                            VolumeData.VolumeMask[i * VolumeData.XNum * VolumeData.YNum + j] = 255;
+                    }
+                }
+                
+                /*
+                const int ScaleNum = 5;
+                double[] ScaleArray = { 2.12, 2.72, 3.5, 4.5, 6.0 };
                 //double[] ScaleArray = { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0 };
                 //double[] ScaleArray = { 0.7, 1.4, 2.1, 2.8, 3.5, 4.2 };
 
                 ResultMap = map.RunKrissianModelMethod2D(VolumeData.XNum, VolumeData.YNum, CurrentXraySlice, ScaleNum, ScaleArray);
                 for (int i = 0; i < VolumeData.XNum * VolumeData.YNum; i++)
                     CurrentXraySlice[i] = Convert.ToByte(ResultMap[i] * 255.0);
+                 */
             }
             else if (VesselEnhancementDialog.MethodIndex == VEDialog.VEMethod.KrissianFlux)
             {
